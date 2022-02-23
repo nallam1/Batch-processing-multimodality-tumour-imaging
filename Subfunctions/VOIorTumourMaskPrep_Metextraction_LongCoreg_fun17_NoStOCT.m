@@ -1,4 +1,4 @@
-function BatchOfFolders= VOIorTumourMaskPrep_Metextraction_LongCoreg_fun17_NoStOCT(GlassThickness_200PixDepth,DataCroppedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,TimepointTrueAndRel,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,OnlyTissueLabelTimepoint0,ActiveMemoryOffload)
+function BatchOfFolders= VOIorTumourMaskPrep_Metextraction_LongCoreg_fun17_NoStOCT(TumourMaskFrom_FLU_0_BRI_1,GlassThickness_200PixDepth,DataCroppedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,TimepointTrueAndRel,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,OnlyTissueLabelTimepoint0,ActiveMemoryOffload)
 %Checking need for transverse view 2D tumour mask if applicable                   
     if contains(MouseName,DirectoriesBareSkinMiceKeyword)%Bareskin mouse
         TumourMaskType='PrismVOI';%Just use some square ROI, but we would still be coregistering to timepoint 0
@@ -33,8 +33,8 @@ SegFolder=OptFluSegmentationFolder;
                  OCTA_data2D=squeeze(sum(RawOCTA_temp.(RawOCTAVarname.name),1));%vessels_processed_binary%sv3D_uint16; %shiftdim(raw_data,1); %Adjust the martrix dimensions for easier indexing through slices
                     OCTA_data2D=OCTA_data2D/max(OCTA_data2D,[],'all');
                     
-    if ~isempty(BatchOfFolders{countBatchFolder,4})%Did not pre-create tumour mask 2D and do not need to quantify fluorescence
-        FLU_BRI_proc=0;
+    if ~isempty(BatchOfFolders{countBatchFolder,4})%Did pre-create tumour mask 2D and do not need to quantify fluorescence
+        FLU_BRI_proc=0;%no need to creat mask
         %% All files to be used
                         BatchOfFolders{countBatchFolder,1}=fullfile(pathOCTVesRaw,filenameOCTVesRaw);%uigetdir(FileSelectDirectory,'Please select folders of datasets to be sv processed');
                         if BinVesselsAlreadyPrepared==1 
@@ -46,7 +46,11 @@ SegFolder=OptFluSegmentationFolder;
                                 MaskVarname=whos('-file',BatchOfFolders{countBatchFolder,4});
                                     TumourMask2D_aligned=imresize(mask2D.(MaskVarname.name),size(OCTA_data2D));
                                     clearvars mask2D
-                                    save(fullfile(SegFolder,['TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
+                                    if TumourMaskFrom_FLU_0_BRI_1==0
+                                        save(fullfile(SegFolder,['FLU_TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
+                                    else
+                                        save(fullfile(SegFolder,['BRI_TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
+                                    end
                                     if ~exist(fullfile(SegFolder,['Mask2DPreCoregTime0-ForScaling.mat']))
                                         TumourMask2DPreCoregTime0=TumourMask2D_aligned;
                                         save(fullfile(SegFolder,['Mask2DPreCoregTime0-ForScaling.mat']),'TumourMask2DPreCoregTime0','-v7.3')
