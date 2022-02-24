@@ -10,6 +10,13 @@ function BatchOfFolders= VOIorTumourMaskPrep_Metextraction_LongCoreg_fun17_NoStO
 %     elseif glass_1_Tissue_2_both_3_contour==2 || glass_1_Tissue_2_both_3_contour==3    
 %         SegFolder=OptFluSegmentationFolder{2};
 %     end
+
+if TumourMaskFrom_FLU_0_BRI_1==0
+    PrefixFLU_BRI='FLU_';
+elseif TumourMaskFrom_FLU_0_BRI_1==0
+    PrefixFLU_BRI='BRI_';
+end
+
 if FoundTumourMask2DButCorrectAlignment==1 || FoundTumourMask2DButCorrectAlignment==2 %in case there was an issue in folder naming (saved elsewhere)-which seems to be the case at least in first L0R1 manually selected and saved
     MaskDir=fileparts(fileparts(BatchOfFolders{countBatchFolder,4}))
     TumourMaskAndStepsDir=MaskDir;
@@ -46,14 +53,15 @@ SegFolder=OptFluSegmentationFolder;
                                 MaskVarname=whos('-file',BatchOfFolders{countBatchFolder,4});
                                     TumourMask2D_aligned=imresize(mask2D.(MaskVarname.name),size(OCTA_data2D));
                                     clearvars mask2D
-                                    if TumourMaskFrom_FLU_0_BRI_1==0
-                                        save(fullfile(SegFolder,['FLU_TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
-                                    else
-                                        save(fullfile(SegFolder,['BRI_TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
-                                    end
-                                    if ~exist(fullfile(SegFolder,['Mask2DPreCoregTime0-ForScaling.mat']))
+%                                     if TumourMaskFrom_FLU_0_BRI_1==0
+%                                         save(fullfile(SegFolder,['FLU_TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
+%                                     else
+%                                         save(fullfile(SegFolder,['BRI_TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
+%                                     end
+                                        save(fullfile(SegFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
+                                    if ~exist(fullfile(SegFolder,[PrefixFLU_BRI,'Mask2DPreCoregTime0-ForScaling.mat']))
                                         TumourMask2DPreCoregTime0=TumourMask2D_aligned;
-                                        save(fullfile(SegFolder,['Mask2DPreCoregTime0-ForScaling.mat']),'TumourMask2DPreCoregTime0','-v7.3')
+                                        save(fullfile(SegFolder,[PrefixFLU_BRI,'Mask2DPreCoregTime0-ForScaling.mat']),'TumourMask2DPreCoregTime0','-v7.3')
                                     end
     else
         FLU_BRI_proc=1;
@@ -124,9 +132,9 @@ SegFolder=OptFluSegmentationFolder;
                                         mkdir(GrossResponseDir);
                                     end 
                         %if isempty(BatchOfFolders{countBatchFolder,4}) && ~(exist(fullfile(SegFolder,['TumourMask2D_aligned.mat']))==2)  %If none pre created will generate one (including steps of first coregistering to OCT then segmenting contour
-                            if exist(fullfile(SegFolder,'SegmentingFilepath.mat')) %%&& useprevious work
-                                    load(fullfile(SegFolder,'SegmentingFilepath.mat'))
-                                    SegmentingFile=ChangeFilePaths(DirectoryDataLetter, SegmentingFile);
+                            if exist(fullfile(SegFolder,[PrefixFLU_BRI,'SegmentingFilepath.mat'])) %%&& useprevious work
+                                    load(fullfile(SegFolder,[PrefixFLU_BRI,'SegmentingFilepath.mat']))
+                                    SegmentingFile=ChangeFilePaths(DirectoryDataLetter, SegmentingFile);%adapting to whichever directory usb port for data is saved on 
                             else
                                 [optFlufilenameForSegmentation,optFluFolderForSegmentation]=uigetfile('*.jpg','Please select image of tumour to be segmented (coregistered to raw OCTA en face) transversely',PotentialFolderTempOptFlu);
                                     SegmentingFile=fullfile(optFluFolderForSegmentation,optFlufilenameForSegmentation);
@@ -152,12 +160,12 @@ SegFolder=OptFluSegmentationFolder;
                                         end
                                 end
                             %% 6) 2D transverse mask creation (tumour segmentation) with previously determined affine transform applied and quantification
-                            FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(MouseName,TimepointTrueAndRel,TimepointVarName,transform2D_OptFlu_OCT,Rfixed,GrossResponseDir,SegFolder,[],FluFile,SegmentingFile,OCTA_data2D,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0{indxNotEmpty},MouseNameTimepoint0);%RawsvOCTFile
+                            FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(PrefixFLU_BRI,MouseName,TimepointTrueAndRel,TimepointVarName,transform2D_OptFlu_OCT,Rfixed,GrossResponseDir,SegFolder,[],FluFile,SegmentingFile,OCTA_data2D,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0{indxNotEmpty},MouseNameTimepoint0);%RawsvOCTFile
 %                         elseif ~isempty(BatchOfFolders{countBatchFolder,4}) && FoundTumourMask2DButCorrectAlignment==0%If already created some mask but not yet quantified
 %                             %% 6) 2D transverse mask creation (tumour segmentation) with previously determined affine transform applied and quantification % no need to reload reference flu
                             %FluorescenceSegmentationAndMetricsFunc_v23_with_Contour_v7(MouseName,Timepoint,TimepointVarName,transform2D_OptFlu_OCT,Rfixed,GrossResponseDir,OptFluSegmentationFolder,BatchOfFolders{countBatchFolder,4},FluFile,SegmentingFile,OCTA_data2D);%RawsvOCTFile
                         %end
-                            if exist(fullfile(SegFolder,'TumourMask2D_aligned.mat'))%did it get created successfully?
+                            if exist(fullfile(SegFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']))%did it get created successfully?
                                 fprintf('Tumour mask 2D successfully created.\n');
                             else
                                 error('Tumour mask 2D not successfully created.\n');

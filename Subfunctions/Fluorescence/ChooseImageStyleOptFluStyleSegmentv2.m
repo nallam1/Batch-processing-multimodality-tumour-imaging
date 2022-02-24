@@ -1,4 +1,4 @@
-function [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)
+function [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)
     ImageX=[];%image to be contoured contouring
     binaryImageDrawn=[];
     
@@ -6,7 +6,7 @@ function [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=Ch
         imshow(image1Segmentation);
         title(filenameT)        
         Opt3= exist(fullfile(fileparts(SegmentationFolderTimepoint0NotEmpty),'2D OCT-bri','flu Co-registration + Tumour Mask',[MouseNameTimepoint0, ' ROI mask.mat']));
-        Opt4= exist(fullfile(OptFluSegmentationFolder,[char(filenameT),' ROI mask.mat']));
+        Opt4= exist(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']));
         % option 5 loading last drawn timepoint (whichever you last drew
         % for current mouse?
         if Opt3 && Opt4
@@ -59,7 +59,7 @@ function [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=Ch
         elseif CoarseROI_Question ==4 && Opt4%exist(fullfile(OptFluSegmentationFolder,[char(filenameT),' ROI mask.mat']))
 %             [name,path]=uigetfile('*.mat', 'Select the ROI mask previously created',OptFluSegmentationFolder)
 %             load(fullfile(path,name))%(OptFluSegmentationFolder,[char(filenameT),' ROI mask']));%loadROI;
-            load(fullfile(OptFluSegmentationFolder,[char(filenameT),' ROI mask.mat']))
+            load(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']))
         end
 %     assignin('caller','name',n);
 %     assignin('caller','age2050',a);

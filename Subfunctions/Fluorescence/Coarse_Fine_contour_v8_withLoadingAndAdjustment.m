@@ -1,4 +1,4 @@
-function [coarseContouredI,coarseContouredIGrey, fineContouredI,binaryImageDrawn, xy_drawn]= Coarse_Fine_contour_v8_withLoadingAndAdjustment(image_for_reference,colourmap, image_to_be_contoured,filenameT,Nautomation,performFineThresholding,CoarseROI_Question,fineContouring_Question,binaryImageDrawn, xy_drawn,OptFluSegmentationFolder)
+function [coarseContouredI,coarseContouredIGrey, fineContouredI,binaryImageDrawn, xy_drawn]= Coarse_Fine_contour_v8_withLoadingAndAdjustment(PrefixFLU_BRI,image_for_reference,colourmap, image_to_be_contoured,filenameT,Nautomation,performFineThresholding,CoarseROI_Question,fineContouring_Question,binaryImageDrawn, xy_drawn,OptFluSegmentationFolder)
 %% Description
     %Ask user to coarsely contour image and/or further automatic fine automatic
     %thresholding (the user is prompted beforehand based on a given image to
@@ -28,7 +28,7 @@ if Nautomation==1 || CoarseROI_Question== 1%"Manual"%Nautomation is for direct e
         binaryImageDrawn = h.createMask();
         
         close gcf
-        binaryImageDrawnName=fullfile(OptFluSegmentationFolder,[char(filenameT),' ROI mask.mat']);
+        binaryImageDrawnName=fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI,char(filenameT),' ROI mask.mat']);
 
 if sum(binaryImageDrawn,'all')>0 %so making sure you did not simply cancel out of mask creation
                 save(binaryImageDrawnName,'binaryImageDrawn');%save everything about the drawn ROI mask
@@ -57,7 +57,7 @@ if CoarseROI_Question== 3 || CoarseROI_Question== 4 %"Load ROI" %%not complete--
         binaryImageDrawn = h2.createMask();
         
         close gcf
-        binaryImageDrawnName=fullfile(OptFluSegmentationFolder,[char(filenameT),' ROI mask.mat']);
+        binaryImageDrawnName=fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']);
     if sum(binaryImageDrawn,'all')>0 %so making sure you did not simply cancel out of mask creation
                 save(binaryImageDrawnName,'binaryImageDrawn');%save everything about the drawn ROI mask
                 xy_drawnIntermediate=bwboundaries(binaryImageDrawn);

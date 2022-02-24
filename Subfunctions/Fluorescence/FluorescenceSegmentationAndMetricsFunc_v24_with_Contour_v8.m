@@ -6,7 +6,7 @@
 % clear;
 % close all;
 % clc;
-function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(MouseName,TimepointTrueAndRel,TimepointVarName,Transform2D,ReferenceZoom,GrossResponseDir,OptFluSegmentationFolder,predrawnTumourMaskFilepath,FluFile,SegmentingFile,RawsvOCT2D,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)%RawsvOCTFile
+function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(PrefixFLU_BRI,MouseName,TimepointTrueAndRel,TimepointVarName,Transform2D,ReferenceZoom,GrossResponseDir,OptFluSegmentationFolder,predrawnTumourMaskFilepath,FluFile,SegmentingFile,RawsvOCT2D,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)%RawsvOCTFile
 %tic; %timing % [tumor_mask]=
 %% User input--Do not change unless trying to do batch processing
         Supervision=1; %After each generated mask it will ask if you are satisfied or not
@@ -22,18 +22,18 @@ function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(MouseName,Ti
 
         
 %             MiceData.(Name).(Timepoint).Day=[];
-%             MiceData.(Name).(Timepoint).TotalDoseToDate=[];
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Area=[];
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Area_3=[];%same as volume without inferring depth just yet
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_1=[];%method 3_1 calculation of Vol (long and short axis) in pixels^3
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2=[];%method 3_2 calculation of Vol (average diameter calculated from area ~circle) in pixels^3
+%             MiceData.(Name).(Timepoint).TotalDoseToDate=[];\
+                SegmentationImageRef=strrep(PrefixFLU_BRI,'_','');
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Area=[];
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Area_3=[];%same as volume without inferring depth just yet
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Vols_3_1=[];%method 3_1 calculation of Vol (long and short axis) in pixels^3
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Vols_3_2=[];%method 3_2 calculation of Vol (average diameter calculated from area ~circle) in pixels^3
         %     MiceData2.Timepoint.Vols_3_1=[];%method 3_1 calculation of Vol (long and short axis) in mm^3
         %     MiceData2.Timepoint.Vols_3_2=[];%method 3_2 calculation of Vol (average diameter calculated from area ~circle) in mm^3
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Viability=[];%Quantifying average intensity of fluorescence in tumour only (out of all bright spots)
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_ViabilityCoregistered=[];
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).TimeSinceStartOfTreatment=DaysPrecise;
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).DoseReceivedUpToTimepoint=DoseReceivedUpToTP;
-            
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Viability=[];%Quantifying average intensity of fluorescence in tumour only (out of all bright spots)
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_ViabilityCoregistered=[];
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).TimeSinceStartOfTreatment=DaysPrecise;
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).DoseReceivedUpToTimepoint=DoseReceivedUpToTP;
 %% starting processing
 if isempty(predrawnTumourMaskFilepath) %if some mask not previously drawn
 %% Extraction of image for segmentation in several styles      
@@ -122,7 +122,7 @@ countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
             if Nautomation_of_image_thresholding==2 %%in case you decided that image ROI selection will be decided previously to be on a case to case basis
                 %Question_to_user_4_App(image1Segmentation,image2Segmentation,image3Segmentation,filenameT)
                 %uiwait(gcf)
-                [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0);
+                [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0);
                 xy_drawnIntermediate=bwboundaries(binaryImageDrawn);
                 if isempty(xy_drawnIntermediate)==0
                     xy_drawn=xy_drawnIntermediate{1};
@@ -131,7 +131,7 @@ countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
             end
 
             %% Tumour Mask creation Manual
-            [coarseContouredIPrealignment,coarseContouredIGreyPrealignment, fineContouredIPrealignment,binaryImageDrawn,xy_drawn]=Coarse_Fine_contour_v8_withLoadingAndAdjustment(image1Segmentation,colourmap,ImageX,filenameT,Nautomation_of_image_thresholding,performFineThresholding,CoarseROI_Question,fineContouring_Question, binaryImageDrawn,xy_drawn,OptFluSegmentationFolder);
+            [coarseContouredIPrealignment,coarseContouredIGreyPrealignment, fineContouredIPrealignment,binaryImageDrawn,xy_drawn]=Coarse_Fine_contour_v8_withLoadingAndAdjustment(PrefixFLU_BRI,image1Segmentation,colourmap,ImageX,filenameT,Nautomation_of_image_thresholding,performFineThresholding,CoarseROI_Question,fineContouring_Question, binaryImageDrawn,xy_drawn,OptFluSegmentationFolder);
             figSatisfied=figure; 
             tiledlayout(3,2)
             nexttile
@@ -152,14 +152,14 @@ countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
             end
 
             if performFineThresholding==1 || fineContouring_Question==1
-            ftiIntermediate=fullfile(OptFluSegmentationFolder,char([filenameT,'-intermediate', coarse, '-With1FineAutomaticThresholding.jpg']));
-            title(char([filenameT,'-intermediate', coarse, '-With1FineAutomaticThresholding']))
-                ftiFinal=fullfile(OptFluSegmentationFolder,char([filenameT ,'-Final',coarse, '-With1FineAutomaticThresholding.jpg']));
+            ftiIntermediate=fullfile(OptFluSegmentationFolder,char([PrefixFLU_BRI,filenameT,'-intermediate', coarse, '-With1FineAutomaticThresholding.jpg']));
+            title(char([PrefixFLU_BRI,filenameT,'-intermediate', coarse, '-With1FineAutomaticThresholding']))
+                ftiFinal=fullfile(OptFluSegmentationFolder,char([PrefixFLU_BRI,filenameT ,'-Final',coarse, '-With1FineAutomaticThresholding.jpg']));
             saveas(gcf,ftiIntermediate,'jpg')
             else
-            ftiIntermediate=fullfile(OptFluSegmentationFolder,char([filenameT, '-intermediate',coarse, '-Without0FineAutomaticThresholding.jpg']));
-            title(char([filenameT,'-intermediate', coarse, '-With1FineAutomaticThresholding']))
-                ftiFinal=fullfile(OptFluSegmentationFolder,char([filenameT ,'-Final',coarse, '-Without0FineAutomaticThresholding.jpg']));
+            ftiIntermediate=fullfile(OptFluSegmentationFolder,char([PrefixFLU_BRI,filenameT, '-intermediate',coarse, '-Without0FineAutomaticThresholding.jpg']));
+            title(char([PrefixFLU_BRI,filenameT,'-intermediate', coarse, '-With1FineAutomaticThresholding']))
+                ftiFinal=fullfile(OptFluSegmentationFolder,char([PrefixFLU_BRI,filenameT ,'-Final',coarse, '-Without0FineAutomaticThresholding.jpg']));
             saveas(gcf,ftiIntermediate,'jpg')
             end
 
@@ -215,7 +215,7 @@ else
     tempMask2D=load(predrawnTumourMaskFilepath);
     FindVarName=whos('-file', predrawnTumourMaskFilepath);
     fineContouredIPrealignment=tempMask2D.(FindVarName.name);
-    if contains(predrawnTumourMaskFilepath,'TumourMask2D_aligned.mat')
+    if contains(predrawnTumourMaskFilepath,[PrefixFLU_BRI,'TumourMask2D_aligned.mat'])
         AlreadyAligned=1;
     else
         AlreadyAligned=0;
@@ -247,10 +247,10 @@ end
             W=[statsPre.MinorAxisLength];
             area=[statsPre.Area];
             d_ave=sqrt(area*4/pi);%mean([L,W]);--average diameter more accurate
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Area=area;
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Area_3=L*W*pi/4;
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_1=L*W^2*pi/2; %compute the relative volume of the oblate ellipsoid mouse tumour according to the Jackson Lab approximation at this day (k) for this mouse (n)
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2=L*W*d_ave*pi/2; %taking Length, width and assuming heigh is average diameter
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Area=area;
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Area_3=L*W*pi/4;
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Vols_3_1=L*W^2*pi/2; %compute the relative volume of the oblate ellipsoid mouse tumour according to the Jackson Lab approximation at this day (k) for this mouse (n)
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Vols_3_2=L*W*d_ave*pi/2; %taking Length, width and assuming heigh is average diameter
             % MiceData2(n).Date(k).Vols_3_1=conv_Pix3_2_mm3(L*W^2/2); %in mm^3
             % MiceData2(n).Date(k).Vols_3_2=conv_Pix3_2_mm3(L*W*d_ave/2); %in mm^3
    
@@ -267,7 +267,7 @@ end
         %% saving version of the mask transformed but before alignment operation longitudinally 
         %followOutput = affineOutputView(size(fineContouredIPrealignment),Transform2D{2},'BoundsStyle','FollowOutput');
         TumourMask2DPreCoregTime0=imwarp(imwarp(fineContouredIPrealignment,Transform2D{1}),Transform2D{2});%,'OutputView',followOutput);
-        save(fullfile(OptFluSegmentationFolder,['Mask2DPreCoregTime0-ForScaling.mat']),'TumourMask2DPreCoregTime0','-v7.3')
+        save(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI,'Mask2DPreCoregTime0-ForScaling.mat']),'TumourMask2DPreCoregTime0','-v7.3')
         clearvars TumourMask2DPreCoregTime0
 %         if ~isempty(binaryImageDrawn)
 %             binaryImageDrawn=imwarp(imwarp(binaryImageDrawn,Transform2D{1}),Transform2D{2},'OutputView',ReferenceZoom);
@@ -315,7 +315,7 @@ end
         %figure, 
         %DataToShow=@()text(40,50,char("L = "+num2str(L)+"| W = "+num2str(W)+"| VoL_{Rel} = "+num2str(Rel_Vols(n,k))));
                     roundingSigFigs=max(length(sprintf('%.0f',L)),length(sprintf('%.0f',W)));
-        DataToShow=@()text(-1000,780,sprintf('Metrics [pix]: \n Length = %.0f \n Width = %.0f \n Area = %.0f \n Diameter_{ave}= %.0f\n Volume = %.3e',L,W,area,d_ave,round(MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')));%round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')%%positioning barely works--not intuitive but does%DataToShow=@()text(-1000,780,sprintf('All in pixels: \nL_{Rel} = %.0f \nW_{Rel} = %.0f \nA_{Rel} = %.0f \nd_{ave Rel}= %.0f\nVoL_{Rel} = %.3e',L,W,area,d_ave,round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')));%round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')%%positioning barely works--not intuitive but does
+        DataToShow=@()text(-1000,780,sprintf('Metrics [pix]: \n Length = %.0f \n Width = %.0f \n Area = %.0f \n Diameter_{ave}= %.0f\n Volume = %.3e',L,W,area,d_ave,round(MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Vols_3_2,roundingSigFigs,'significant')));%round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')%%positioning barely works--not intuitive but does%DataToShow=@()text(-1000,780,sprintf('All in pixels: \nL_{Rel} = %.0f \nW_{Rel} = %.0f \nA_{Rel} = %.0f \nd_{ave Rel}= %.0f\nVoL_{Rel} = %.3e',L,W,area,d_ave,round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')));%round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')%%positioning barely works--not intuitive but does
             propsText={'fontweight','bold','color','m','fontsize',40,...
            'linewidth',3,'margin',5,'edgecolor',[0 1 1],'backgroundcolor','y'};
         ImageContouring=@()rectangle('Position',statsPre.BoundingBox);%it takes,x,y, width, height to draw rectangle %I could also add curvature factor to make rectangle into ellipse according to rectangle() parameters
@@ -350,7 +350,7 @@ end
         end
         end
         Viability=sum(grayscaleIm,'all')/nnz(LabelledPre);%countI;
-        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_Viability=Viability;%Date(k).Rel_Viability=Viability;
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Viability=Viability;%Date(k).Rel_Viability=Viability;
  %fluoro       
         FluImage=imwarp(imwarp(imread(FluFile),Transform2D{1}),Transform2D{2},'OutputView',ReferenceZoom);%imwarp(imread(FluFile),Transform2D,'OutputView',ReferenceZoom);
 %     image3Segmentation=imwarp(imwarp(image3Segmentation,Transform2D{1}),Transform2D{2},'OutputView',ReferenceZoom);%imwarp(image3Segmentation,Transform2D,'OutputView',ReferenceZoom);
@@ -372,7 +372,7 @@ end
         end
         Viability=sum(grayscaleIm,'all')/nnz(LabelledPost);%countI;
         
-        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).Rel_ViabilityCoregistered=Viability;
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_ViabilityCoregistered=Viability;
 %% Figure
         figure,
         FIG=tiledlayout(3,3);
@@ -459,7 +459,7 @@ end
         save(MiceTumourResponseDataFile, 'MiceData','-v7.3');
         
 %         tumor_mask=imwarp(tumor_mask,transform2D);
-        save(fullfile(OptFluSegmentationFolder,['TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
+        save(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
 % %% Export to spreadsheet
 %         if performFineThresholding==1
 %         fileSpreadSheet=char([fullfile(Directory,date,fileSpreadSheet), ' with fine automatic thresholding.xlsx'])
