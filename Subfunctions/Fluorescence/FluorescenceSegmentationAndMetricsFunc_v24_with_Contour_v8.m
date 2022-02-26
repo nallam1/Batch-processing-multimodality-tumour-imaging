@@ -6,7 +6,7 @@
 % clear;
 % close all;
 % clc;
-function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(PrefixFLU_BRI,MouseName,TimepointTrueAndRel,TimepointVarName,Transform2D,ReferenceZoom,GrossResponseDir,OptFluSegmentationFolder,predrawnTumourMaskFilepath,FluFile,SegmentingFile,RawsvOCT2D,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)%RawsvOCTFile
+function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(Timepoint0Analyzed,PrefixFLU_BRI,MouseName,TimepointTrueAndRel,TimepointVarName,Transform2D,ReferenceZoom,GrossResponseDir,OptFluSegmentationFolder,predrawnTumourMaskFilepath,FluFile,SegmentingFile,RawsvOCT2D,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)%RawsvOCTFile
 %tic; %timing % [tumor_mask]=
 %% User input--Do not change unless trying to do batch processing
         Supervision=1; %After each generated mask it will ask if you are satisfied or not
@@ -32,8 +32,13 @@ function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(PrefixFLU_BR
         %     MiceData2.Timepoint.Vols_3_2=[];%method 3_2 calculation of Vol (average diameter calculated from area ~circle) in mm^3
             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Viability=[];%Quantifying average intensity of fluorescence in tumour only (out of all bright spots)
             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_ViabilityCoregistered=[];
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).TimeSinceStartOfTreatment=DaysPrecise;
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).DoseReceivedUpToTimepoint=DoseReceivedUpToTP;
+            if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed 
+                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).TimeSinceStartOfTreatment=DaysPrecise;
+                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).DoseReceivedUpToTimepoint=DoseReceivedUpToTP;
+            else
+                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).TimeSinceStartOfTreatment=[];
+                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).DoseReceivedUpToTimepoint=[];
+            end
 %% starting processing
 if isempty(predrawnTumourMaskFilepath) %if some mask not previously drawn
 %% Extraction of image for segmentation in several styles      
@@ -122,7 +127,7 @@ countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
             if Nautomation_of_image_thresholding==2 %%in case you decided that image ROI selection will be decided previously to be on a case to case basis
                 %Question_to_user_4_App(image1Segmentation,image2Segmentation,image3Segmentation,filenameT)
                 %uiwait(gcf)
-                [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0);
+                [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(Timepoint0Analyzed,PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0);
                 xy_drawnIntermediate=bwboundaries(binaryImageDrawn);
                 if isempty(xy_drawnIntermediate)==0
                     xy_drawn=xy_drawnIntermediate{1};

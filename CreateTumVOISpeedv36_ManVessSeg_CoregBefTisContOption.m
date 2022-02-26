@@ -24,6 +24,7 @@ tic
     %% *****************Tumour Mask creation settings*****************
         % General
             MatlabVer=2021;
+            Timepoint0Analyzed=0; %Is the analysis being conducted before timepoint 0- has been acquired and been processed--will have to run a separate code to add times to fluorescence metric extraction data file and and apply co-registration step    
             LateralorFullCoregPreTisContour=0;% Moves co-registration of volume step prior to tissue contour (but after glass contour)--only if have sufficient memory and helps mostly if OnlyTissueLabelTimepoint0==0 (manally drawn for each timepoint
             glass_1_Tissue_2_both_3_contour=1;%whether contouring of glass (broken or not) will be performed or the actual tissue surface to help in consistency and accuracy inter-timepoint of manually drawn contours if applying --> Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 or 2 is possible on the computer
                     MaskCreationFolder={'Manual_With_WO_Glass2';'Manual_OnlyTissue'};
@@ -203,7 +204,7 @@ if ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3==0
                                     Time=[TimeDraft{1} 'h' TimeDraft{2} 'm' TimeDraft{3} 's'];%strrep(Timepoint,',',{'h';'m'})
                                     TimepointVarName{1}=['Day' TimepointVarNameDraft{1}]; 
                                     TimepointVarName{2}=['Time' Time];
-                                    
+                              if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed   
                                      %% Timepoint calculation
                                         %TimepointDataFolder=fileparts(fileparts(fileparts(fileparts(fileparts(BatchOfFolders{countBatchFolder,2})))))
 
@@ -221,7 +222,10 @@ if ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3==0
                                                    MouseNameTimepoint=[MouseName sprintf('_{%dd post}',DaysRounded)]; %'_{post}'];
                                                 else
                                                    MouseNameTimepoint=[MouseName sprintf('_{%dd}',DaysRounded)]; 
-                                                end                    
+                                                end
+                              else
+                                  MouseNameTimepoint=[MouseName,'_',Timepoint];%Naming since not going through actual timepoint calculation
+                              end
                         end
                                 
         %% Files checked to see if already processed 
@@ -263,7 +267,7 @@ SaveFilenameDataCylindricalProj=cell(2,1);
                            end
                         end
             end
-            if glass_1_Tissue_2_both_3_contour==2 || glass_1_Tissue_2_both_3_contour==3   
+            if (glass_1_Tissue_2_both_3_contour==2 || glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed   
                     MaskCreationDraft{2}=fullfile(saveFolder{2},['Tissue masking intermediate steps']);%, replace(char(datetime),':','_')]);%careful if there is space after filename--not allowed in directory immediately before backslash                
                     mkdir(MaskCreationDraft{2});
                     saveContour{2}=fullfile(MaskCreationDraft{2},'zline_TissueTop_uncoregTime0-.mat');
@@ -368,7 +372,8 @@ else
                     BatchOfFolders{countBatchFolder,1}=fullfile(pathOCTVesRaw,filenameOCTVesRaw); %OCT file found and recorded
 
                     FoundRawOCTA=1;
-                    if UnformatedDataSet==0 
+                    if UnformatedDataSet==0
+                        if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed        
                     %% Which Mouse timepoint 0 file to refer to? and index
                                     TimepointTrueAndRel=sprintf('%s_%.1fd',Timepoint,DaysPrecise);
 % GoodFile=inputgl('Shall we continue trying to process this file?');
@@ -444,6 +449,7 @@ else
                                             continue
                                         end
                                     end
+                        end
                     end
                     
 %% Now to load structural file                           
@@ -550,7 +556,8 @@ else
                                                     FoundTumourMask2DButCorrectAlignment=2;%some other mask intermediate    
                                             end                                
                                 
-                                  %% Dose received up to considered timepoint  
+                                  %% Dose received up to considered timepoint 
+                            if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed        
                                 if UnformatedDataSet==1
                                     if contains(pathOCTVesRaw,'Bare Skin')
                                        DoseReceivedUpToTP=0;
@@ -596,6 +603,7 @@ else
                                             fclose(fid);
                                     end
                                 end
+                            end
                                 %% 2D/3D coregistration, Gross tumour response metrics and longitudinal coregistration
                                     % If this step was already performed it
                                     % can be skipped
@@ -1160,7 +1168,8 @@ elseif ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3==2 || ManualSelFew_0
                                     TimepointVarName{1}=['Day' TimepointVarNameDraft{1}]; 
                                     TimepointVarName{2}=['Time' Time];
 %                                 MouseNameTimepoint=[MouseName,' ',Timepoint];
-                        %% Timepoint calculation
+                if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed                         
+                    %% Relative Timepoint calculation
                                 %TimepointDataFolder=fileparts(fileparts(fileparts(fileparts(fileparts(BatchOfFolders{countBatchFolder,2})))))
 
                                 [TimeElapsed, MouseName,Timepoint,InitialTimepointtxtFile]=CalcTimePostRTx(TumourMaskAndStepsDir, DirectoryVesselsData);
@@ -1178,7 +1187,9 @@ elseif ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3==2 || ManualSelFew_0
                                         else
                                            MouseNameTimepoint=[MouseName sprintf('_{%dd}',DaysRounded)]; 
                                         end                                
-                                
+                else
+                     MouseNameTimepoint=[MouseName,'_',Timepoint];%Naming since not going through actual timepoint calculation
+                end
         %% Files checked to see if already processed 
 %         if glass_1_Tissue_2_both_3_contour==1
 %             glass_1_Tissue_2_contour={1,0}
@@ -1218,7 +1229,7 @@ SaveFilenameDataCylindricalProj=cell(2,1);
                            end
                         end
             end
-            if glass_1_Tissue_2_both_3_contour==2 || glass_1_Tissue_2_both_3_contour==3   
+            if (glass_1_Tissue_2_both_3_contour==2 || glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed    
                     MaskCreationDraft{2}=fullfile(saveFolder{2},['Tissue masking intermediate steps']);%, replace(char(datetime),':','_')]);%careful if there is space after filename--not allowed in directory immediately before backslash                
                     mkdir(MaskCreationDraft{2});
                     saveContour{2}=fullfile(MaskCreationDraft{2},'zline_TissueTop_uncoregTime0-.mat');
@@ -1314,28 +1325,29 @@ else
                     BatchOfFolders{countBatchFolder,1}=fullfile(pathOCTVesRaw,filenameOCTVesRaw); %OCT file found and recorded
 
                     FoundRawOCTA=1;
+                    if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed        
                         %% Which Mouse timepoint 0 file to refer to? and index
                                     TimepointTrueAndRel=sprintf('%s_%.1fd',Timepoint,TimeElapsed.RelImgTimepointDaysPrecise);
 
                         if ~(-1<DaysPrecise && DaysPrecise<=0)
                             try
 % GoodFile=inputgl('Shall we continue trying to process this file?');
-                        if glass_1_Tissue_2_both_3_contour==1 || glass_1_Tissue_2_both_3_contour==3
-                                        [SegmentationFolderTimepoint0Temp{1},IndexMouse]=findSegmentationtimepoint0_Folderv2(MouseName,Timepoint,BatchOfFolders,countBatchFolder,DirectoryInitialTimepoints,InitialTimepointtxtFile,DirectoriesBareSkinMiceKeyword,saveContour{1},MaskCreationFolder{1});%SaveFilenameRawMaskApplied--not necessarily already done
-                                if ~contains(SegmentationFolderTimepoint0Temp{1},'Manual_With_WO_Glass2')%the case when you are just starting timepoint 0- processing)
-                                    SegmentationFolderTimepoint0{1}=fullfile(SegmentationFolderTimepoint0Temp{1},'Manual_With_WO_Glass2');
-                                else
-                                    SegmentationFolderTimepoint0{1}=SegmentationFolderTimepoint0Temp{1};
+                                if glass_1_Tissue_2_both_3_contour==1 || glass_1_Tissue_2_both_3_contour==3
+                                                [SegmentationFolderTimepoint0Temp{1},IndexMouse]=findSegmentationtimepoint0_Folderv2(MouseName,Timepoint,BatchOfFolders,countBatchFolder,DirectoryInitialTimepoints,InitialTimepointtxtFile,DirectoriesBareSkinMiceKeyword,saveContour{1},MaskCreationFolder{1});%SaveFilenameRawMaskApplied--not necessarily already done
+                                        if ~contains(SegmentationFolderTimepoint0Temp{1},'Manual_With_WO_Glass2')%the case when you are just starting timepoint 0- processing)
+                                            SegmentationFolderTimepoint0{1}=fullfile(SegmentationFolderTimepoint0Temp{1},'Manual_With_WO_Glass2');
+                                        else
+                                            SegmentationFolderTimepoint0{1}=SegmentationFolderTimepoint0Temp{1};
+                                        end
                                 end
-                        end
-                        if glass_1_Tissue_2_both_3_contour==2 || glass_1_Tissue_2_both_3_contour==3
-                                        [SegmentationFolderTimepoint0Temp{2},IndexMouse]=findSegmentationtimepoint0_Folderv2(MouseName,Timepoint,BatchOfFolders,countBatchFolder,DirectoryInitialTimepoints,InitialTimepointtxtFile,DirectoriesBareSkinMiceKeyword,saveContour{2},MaskCreationFolder{2});%SaveFilenameRawMaskApplied--not necessarily already done
-                                if ~contains(SegmentationFolderTimepoint0Temp{2},'Manual_OnlyTissue')%the case when you are just starting timepoint 0- processing)
-                                    SegmentationFolderTimepoint0{2}=fullfile(SegmentationFolderTimepoint0Temp{2},'Manual_OnlyTissue');
-                                else
-                                    SegmentationFolderTimepoint0{2}=SegmentationFolderTimepoint0Temp{2};
+                                if glass_1_Tissue_2_both_3_contour==2 || glass_1_Tissue_2_both_3_contour==3
+                                                [SegmentationFolderTimepoint0Temp{2},IndexMouse]=findSegmentationtimepoint0_Folderv2(MouseName,Timepoint,BatchOfFolders,countBatchFolder,DirectoryInitialTimepoints,InitialTimepointtxtFile,DirectoriesBareSkinMiceKeyword,saveContour{2},MaskCreationFolder{2});%SaveFilenameRawMaskApplied--not necessarily already done
+                                        if ~contains(SegmentationFolderTimepoint0Temp{2},'Manual_OnlyTissue')%the case when you are just starting timepoint 0- processing)
+                                            SegmentationFolderTimepoint0{2}=fullfile(SegmentationFolderTimepoint0Temp{2},'Manual_OnlyTissue');
+                                        else
+                                            SegmentationFolderTimepoint0{2}=SegmentationFolderTimepoint0Temp{2};
+                                        end
                                 end
-                        end
                             catch
                                 fprintf('Timepoint0- file for requested segmentation style not yet performed. Skipping\n')
                                 continue
@@ -1391,6 +1403,7 @@ else
                                             continue
                                         end
                                     end
+                    end
                     %% binarized OCTA loading
                     if BinVesselsAlreadyPrepared==1
                         FoundBinOCTA=0;
@@ -1536,7 +1549,7 @@ else
                                     
                                 
                                   %% Dose received up to considered timepoint  
-                                  
+                            if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed              
                                 DoseCohort=TotalDoses{IndexMouse};
                                     if contains(DoseCohort,'noRTx','IgnoreCase',true) 
                                         DoseReceivedUpToTP=0;
