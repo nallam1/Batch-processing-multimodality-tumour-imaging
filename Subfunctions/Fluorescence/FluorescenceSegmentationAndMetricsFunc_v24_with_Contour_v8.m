@@ -6,7 +6,7 @@
 % clear;
 % close all;
 % clc;
-function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(Timepoint0Analyzed,PrefixFLU_BRI,MouseName,TimepointTrueAndRel,TimepointVarName,Transform2D,ReferenceZoom,GrossResponseDir,OptFluSegmentationFolder,predrawnTumourMaskFilepath,FluFile,SegmentingFile,RawsvOCT2D,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)%RawsvOCTFile
+function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(CurrentTimepoint,Timepoint0Analyzed,PrefixFLU_BRI,MouseName,TimepointTrueAndRel,TimepointVarName,Transform2D,ReferenceZoom,GrossResponseDir,OptFluSegmentationFolder,predrawnTumourMaskFilepath,FluFile,SegmentingFile,RawsvOCT2D,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)%RawsvOCTFile
 %tic; %timing % [tumor_mask]=
 %% User input--Do not change unless trying to do batch processing
         Supervision=1; %After each generated mask it will ask if you are satisfied or not
@@ -32,6 +32,7 @@ function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(Timepoint0An
         %     MiceData2.Timepoint.Vols_3_2=[];%method 3_2 calculation of Vol (average diameter calculated from area ~circle) in mm^3
             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Viability=[];%Quantifying average intensity of fluorescence in tumour only (out of all bright spots)
             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_ViabilityCoregistered=[];
+            
             if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed 
                 MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).TimeSinceStartOfTreatment=DaysPrecise;
                 MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).DoseReceivedUpToTimepoint=DoseReceivedUpToTP;
@@ -53,7 +54,7 @@ if isempty(predrawnTumourMaskFilepath) %if some mask not previously drawn
 % NewDirectory=fullfile(currentdir,'Processed Fluorescence');
 %         mkdir(NewDirectory);
 %         cd(NewDirectory)
-filenameT=[MouseName ' ' TimepointTrueAndRel];%[mouseName+" after "+int2str(dose)+"Gy, flu_{"+string(Timepoints(k,:))+"}"];%For the sake of reformatting titles
+filenameT=[string(MouseName) + " " +string(CurrentTimepoint)];%TimepointTrueAndRel];%[mouseName+" after "+int2str(dose)+"Gy, flu_{"+string(Timepoints(k,:))+"}"];%For the sake of reformatting titles
 %["WC"+int2str(MiceFolderInd)+" after "+int2str(dose)+"Gy, flu_{"+string(Timepoints(k,:))+"}"];%For the sake of reformatting titles
 
 
@@ -127,7 +128,7 @@ countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
             if Nautomation_of_image_thresholding==2 %%in case you decided that image ROI selection will be decided previously to be on a case to case basis
                 %Question_to_user_4_App(image1Segmentation,image2Segmentation,image3Segmentation,filenameT)
                 %uiwait(gcf)
-                [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(Timepoint0Analyzed,PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0);
+                [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(CurrentTimepoint,Timepoint0Analyzed,PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0);
                 xy_drawnIntermediate=bwboundaries(binaryImageDrawn);
                 if isempty(xy_drawnIntermediate)==0
                     xy_drawn=xy_drawnIntermediate{1};
@@ -465,6 +466,8 @@ end
         
 %         tumor_mask=imwarp(tumor_mask,transform2D);
         save(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
+            TempFileparts=strsplit(OptFluSegmentationFolder,'\')
+        save(fullfile(TempFileparts{1:3},'2DMasksRepository',[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']),'TumourMask2D_aligned','-v7.3')
 % %% Export to spreadsheet
 %         if performFineThresholding==1
 %         fileSpreadSheet=char([fullfile(Directory,date,fileSpreadSheet), ' with fine automatic thresholding.xlsx'])

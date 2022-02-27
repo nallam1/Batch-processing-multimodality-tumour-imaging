@@ -1,4 +1,4 @@
-function [TimeElapsed,MouseName,DateName,InitialTimepointFile]= CalcTimePostRTx(TumourMaskAndStepsDir, GenDirectory)%,ListofInitialTimepoints)
+function [ImgTimepoint,TimeElapsed,MouseName,DateName,InitialTimepointFile]= CalcTimePostRTx(TumourMaskAndStepsDir, GenDirectory)%,ListofInitialTimepoints)
 %% extracts days since irradiation or reference timepoint (timepoint 0-)
 %% Folder organization:
 % All individual mouse-tumour folders and folder containing extracted
