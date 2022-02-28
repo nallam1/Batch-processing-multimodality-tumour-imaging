@@ -1,4 +1,4 @@
-function BatchOfFolders= VOIorTumourMaskPrep_Metext_LongCoreg_fun16_CoregBefContTis(CurrentTimepoint,Timepoint0Analyzed,TumourMaskFrom_FLU_0_BRI_1,GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload)
+function BatchOfFolders= VOIorTumourMaskPrep_Metext_LongCoreg_fun16_CoregBefContTis(CurrentTimepoint,Timepoint0Analyzed,TumourMaskFrom_FLU_0_BRI_1,GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,Neither_0_glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload)
 %Checking need for transverse view 2D tumour mask if applicable
 if contains(MouseName,DirectoriesBareSkinMiceKeyword)%Bareskin mouse
     TumourMaskType='PrismVOI';%Just use some square ROI, but we would still be coregistering to timepoint 0
@@ -223,21 +223,21 @@ end
     if isequal(TumourMaskType,'TumourVOI')
         load(fullfile(SegFolder,'TransverseOptFlu_coregtoOCT_PreTime0-.mat'));%reference image for brightfield fluorescence coregistration
     end
-
+if Neither_0_glass_1_Tissue_2_both_3_contour~=0
 %% 7) Depth Corregistration to Day 0 OCT (by glass removal and rotation
 %DimsVesselsRaw3D=size(RawOCTALateralCoregistered)
 %% Contour the top surface of OCT volume
 % Removing empty space above tumour in window chamber and glass slip in the
 % B-scan view--> slice by slice for 30 slices across (laterally (each slice is along the axial direction, but we look at a few every few 100microns along x or y))
 %%No glass for PDXovo
-if exist(fullfile(MaskCreationDraft{1},'zline_GlassTop_uncoregTime0-.mat')) && glass_1_Tissue_2_both_3_contour==1 || exist(fullfile(MaskCreationDraft{2},'zline_TissueTop_uncoregTime0-.mat')) && glass_1_Tissue_2_both_3_contour==2 || (exist(fullfile(MaskCreationDraft{1},'zline_GlassTop_uncoregTime0-.mat')) && exist(fullfile(MaskCreationDraft{2},'zline_TissueTop_uncoregTime0-.mat'))) && glass_1_Tissue_2_both_3_contour==3
+if exist(fullfile(MaskCreationDraft{1},'zline_GlassTop_uncoregTime0-.mat')) && Neither_0_glass_1_Tissue_2_both_3_contour==1 || exist(fullfile(MaskCreationDraft{2},'zline_TissueTop_uncoregTime0-.mat')) && Neither_0_glass_1_Tissue_2_both_3_contour==2 || (exist(fullfile(MaskCreationDraft{1},'zline_GlassTop_uncoregTime0-.mat')) && exist(fullfile(MaskCreationDraft{2},'zline_TissueTop_uncoregTime0-.mat'))) && Neither_0_glass_1_Tissue_2_both_3_contour==3
     AutoProcess=1;
 else
     AutoProcess=0;
 end
 %% 8) Identification of bottom surface of glass
 %             if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==0 || Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==2
-if glass_1_Tissue_2_both_3_contour==1||glass_1_Tissue_2_both_3_contour==3
+if Neither_0_glass_1_Tissue_2_both_3_contour==1||Neither_0_glass_1_Tissue_2_both_3_contour==3
     if ~exist(fullfile(MaskCreationDraft{1},'mask3D_GlassExc_uncoregTime0-.mat'))
         mask_3DGlass=ContouringFunctionFilesLoadedOrMatFile12_RatioDimensions(DimsVesselsRaw3D,num_contoured_slices(1),[MouseName,' ',TimepointTrueAndRel],BatchOfFolders,countBatchFolder, fullfile(MaskCreationDraft{1},'zline_GlassTop_uncoregTime0-.mat'),fullfile(MaskCreationDraft{1},'zline_GlassBot_uncoregTime0-.mat'),fullfile(MaskCreationDraft{1},'mask3D_GlassInc_uncoregTime0-.mat'),fullfile(MaskCreationDraft{1},'mask3D_GlassExc_uncoregTime0-.mat'),saveFolder{1},MaskCreationDraft{1},'Matfile',AutoProcess,OSremoval,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth);%,umPerPix_For200PixDepth);%             [mask_3D_NoGlass_NotCoreg]= ContouringFunctionFilesLoadedOrMatFile7_batchProc(num_contoured_slices_Top,[MouseName,' ',Timepoint],stOCTLateralCoregistered,vessels_processed_binaryLateralCoregistered,DimsVesselsRaw3D, fullfile(GlassRemovalDraft,'zline_GlassTop.mat'),fullfile(GlassRemovalDraft,'zline_GlassBot.mat'),fullfile(saveFolder,'mask_3D_YesGlassUnrotated.mat'),fullfile(saveFolder,'mask_3D_NoGlassUnrotated.mat'),saveFolder,GlassRemovalDraft,AutoProcess,OSremoval);
     else
@@ -303,7 +303,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
         %Hence computer will be safe to apply the rigid transforms to the full
         %data volumes prior to co-registration operation
         if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==2
-            if glass_1_Tissue_2_both_3_contour==1||glass_1_Tissue_2_both_3_contour==3
+            if Neither_0_glass_1_Tissue_2_both_3_contour==1||Neither_0_glass_1_Tissue_2_both_3_contour==3
                 % Creation of 3D mask pre coreg time0-, no need to save coreg
                 % to time0-
                 load(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']))
@@ -372,14 +372,14 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                     BinVesstemp.BinOCTA_UnCoregT0_RotatedShifted=BinOCTA_UnCoregT0_RotatedShifted;
                     clearvars BinOCTA_UnCoregT0_RotatedShifted
                 end
-                if glass_1_Tissue_2_both_3_contour==3 && ActiveMemoryOffload==1%Multiple files processes
+                if Neither_0_glass_1_Tissue_2_both_3_contour==3 && ActiveMemoryOffload==1%Multiple files processes
                     clearvars RawStructtemp RawVesstemp BinVesstemp mask_3DGlass%StOCT_UnCoregT0_RotatedShifted RawOCTA_UnCoregT0_RotatedShifted BinOCTA_UnCoregT0_RotatedShifted
                 end
                 clearvars FloorOmissionMask
             end
             %% 8.b) Identification of tissue surface if applicable
             % Doing now so the coregistration helps in the tracing
-            if (glass_1_Tissue_2_both_3_contour==2||glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed 
+            if (Neither_0_glass_1_Tissue_2_both_3_contour==2||Neither_0_glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed 
                 if OnlyTissueLabelTimepoint0==1
                     MaskCreationDraftTemp=strsplit(MaskCreationDraft{2},'\');
                     PotentialFile1=fullfile(SegmentationFolderTimepoint0{2},MaskCreationDraftTemp{end},'mask3D_TissueOnly_uncoregTime0-.mat');
@@ -408,12 +408,12 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                     PotentialFile1=fullfile(MaskCreationDraft{2},'mask3D_TissueAndAllBelow_uncoregTime0-.mat');
                     PotentialFile2=fullfile(MaskCreationDraft{2},'mask3D_TissueOnly_uncoregTime0-.mat');
                     if (~exist(PotentialFile1,'file')||~exist(PotentialFile2,'file')) && (Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==2)
-                        if glass_1_Tissue_2_both_3_contour==2
+                        if Neither_0_glass_1_Tissue_2_both_3_contour==2
                             stOCTCoregLateral=
                             RawOCTACoregLateral=
                             BinOCTACoregLateral=
                             mask_3DTissue=ContouringFunctionFilesLoadedOrMatFile12_RatioDimensionsTis(DimsVesselsRaw3D,num_contoured_slices(2),[MouseName,' ',TimepointTrueAndRel],BatchOfFolders,countBatchFolder, fullfile(MaskCreationDraft{2},'zline_TissueTop_uncoregTime0-.mat'),fullfile(MaskCreationDraft{2},'zline_TissueBot_uncoregTime0-.mat'),fullfile(MaskCreationDraft{2},'mask3D_TissueAndAllBelow_uncoregTime0-.mat'),fullfile(MaskCreationDraft{2},'mask3D_TissueOnly_uncoregTime0-.mat'),saveFolder{2},MaskCreationDraft{2},'Matfile',AutoProcess,OSremoval,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2);%,umPerPix_For200PixDepth);%             [mask_3D_NoGlass_NotCoreg]= ContouringFunctionFilesLoadedOrMatFile7_batchProc(num_contoured_slices_Top,[MouseName,' ',Timepoint],stOCTLateralCoregistered,vessels_processed_binaryLateralCoregistered,DimsVesselsRaw3D, fullfile(GlassRemovalDraft,'zline_GlassTop.mat'),fullfile(GlassRemovalDraft,'zline_GlassBot.mat'),fullfile(saveFolder,'mask_3D_YesGlassUnrotated.mat'),fullfile(saveFolder,'mask_3D_NoGlassUnrotated.mat'),saveFolder,GlassRemovalDraft,AutoProcess,OSremoval);
-                            if glass_1_Tissue_2_both_3_contour==2
+                            if Neither_0_glass_1_Tissue_2_both_3_contour==2
                                 stOCTCoregFull=
                                 RawOCTACoregFull=
                                 BinOCTACoregFull=
@@ -480,7 +480,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
             % contour from timepoint 0- (OCT data rotated in
             % glass_1_Tissue_2_both_3_contour==1 for
             % glass_1_Tissue_2_both_3_contour==3 and OnlyTissueLabelTimepoint0==1)
-            if (glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
+            if (Neither_0_glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
                 if exist(fullfile(MaskCreationDraft{1},'mask3D_GlassExc_uncoregTime0-.mat'))
                     if OnlyTissueLabelTimepoint0==1
                         if (-1<DaysPrecise && DaysPrecise<=0)
@@ -659,7 +659,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
         if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==2
             %% Applying 3D coregistration (laterally) to all 3D scans (stOCT and OCTA (raw and if applicable binarized)) with masks
             %% Glass mode for TPx
-            if glass_1_Tissue_2_both_3_contour==1 ||glass_1_Tissue_2_both_3_contour==3
+            if Neither_0_glass_1_Tissue_2_both_3_contour==1 ||Neither_0_glass_1_Tissue_2_both_3_contour==3
                 if ActiveMemoryOffload==1%glass_1_Tissue_2_both_3_contour==3 && ActiveMemoryOffload==1%previously deleted for memory
                     %% Loading glass removed files
                     %loading of glass removed struct, raw and bin here
@@ -693,7 +693,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                     save(fullfile(saveFolder{1},'BinVess_CoregTime0-_RotShift.mat'),'BinOCTA_CoregT0_RotatedShifted','-v7.3');
                     clearvars BinOCTA_UnCoregT0_RotatedShifted BinOCTA_CoregT0_RotatedShifted%RawOCTA_CoregT0_RotatedShifted
                 end
-                if glass_1_Tissue_2_both_3_contour==1
+                if Neither_0_glass_1_Tissue_2_both_3_contour==1
                     %% Creating 3D mask as conjunction of tumour lateral contour/ 2D ROI with glass exclusion in depth % still contains air tissue gap between glass and tissue
                     load(BatchOfFolders{countBatchFolder,4});
                     %MaskVarname=whos('-file',BatchOfFolders{countBatchFolder,4});%should be the coregistered one to timepoint 0- either way by this point
@@ -705,7 +705,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                 end
             end
             %% Tissue mode for TPx
-            if (glass_1_Tissue_2_both_3_contour==2) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed 
+            if (Neither_0_glass_1_Tissue_2_both_3_contour==2) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed 
                 %no flattening of tissue (distort vessel shape similar to non-similarity affine transform
                 if OnlyTissueLabelTimepoint0==0 %if drawing it manually for each timepoint--worth saving tissue mask
                     RawOCTA_CoregT0_TissueMaskApplied=double(imwarp(imwarp(RawOCTA_UnCoregT0_TissueMaskApplied,transform3DLateral_OCT_Time0Pre{1}),transform3DLateral_OCT_Time0Pre{2},'OutputView',R3Dfixed,'interp','cubic'));%Rout3);
@@ -730,7 +730,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                     % else%if glass_1_Tissue_2_both_3_contour==2 %not worth doing if based on TP0-
                 end
                 %% Tissue + glass mode for TPx
-            elseif (glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
+            elseif (Neither_0_glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
                 if ActiveMemoryOffload==1
                     %loading glass removed OCT files
                     %                                            load(fullfile(saveFolder{1},'RawVess_CoregTime0-_RotShift.mat'));
@@ -845,7 +845,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
         if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==2
             %% NOT Applying 3D coregistration (laterally) to all 3D scans (stOCT and OCTA (raw and if applicable binarized)) with masks
             %% Glass mode for TP0-
-            if glass_1_Tissue_2_both_3_contour==1 ||glass_1_Tissue_2_both_3_contour==3
+            if Neither_0_glass_1_Tissue_2_both_3_contour==1 ||Neither_0_glass_1_Tissue_2_both_3_contour==3
                 if ActiveMemoryOffload==1%glass_1_Tissue_2_both_3_contour==3 && ActiveMemoryOffload==1%previously deleted for memory
                     %% Loading glass removed files
                     %loading of glass removed struct, raw and bin here
@@ -884,7 +884,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                     save(fullfile(saveFolder{1},'BinVess_CoregTime0-_RotShift.mat'),'BinOCTA_CoregT0_RotatedShifted','-v7.3');
                     clearvars BinOCTA_UnCoregT0_RotatedShifted BinOCTA_CoregT0_RotatedShifted%RawOCTA_CoregT0_RotatedShifted
                 end
-                if glass_1_Tissue_2_both_3_contour==1
+                if Neither_0_glass_1_Tissue_2_both_3_contour==1
                     %% Creating 3D mask as conjunction of tumour lateral contour/ 2D ROI with glass exclusion in depth % still contains air tissue gap between glass and tissue
                     load(BatchOfFolders{countBatchFolder,4});
                     %MaskVarname=whos('-file',BatchOfFolders{countBatchFolder,4});%should be the coregistered one to timepoint 0- either way by this point
@@ -896,7 +896,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                 end
             end
             %% Tissue mode for TP0-
-            if (glass_1_Tissue_2_both_3_contour==2) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
+            if (Neither_0_glass_1_Tissue_2_both_3_contour==2) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
                 %no flattening of tissue (distort vessel shape similar to non-similarity affine transform
                 if OnlyTissueLabelTimepoint0==0 %if drawing it manually for each timepoint--worth saving tissue mask
                     RawOCTA_CoregT0_TissueMaskApplied=double(RawOCTA_UnCoregT0_TissueMaskApplied);%Rout3);
@@ -921,7 +921,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                     % else%if glass_1_Tissue_2_both_3_contour==2 %not worth doing if based on TP0-
                 end
                 %% Tissue + glass mode for TP0-
-            elseif (glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
+            elseif (Neither_0_glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
                 %% Loading if applicable
                 if ActiveMemoryOffload==1% cleared previously for memory
                     %loading glass removed OCT files
@@ -1050,7 +1050,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
             %% Confirm vessels orientation with respect to structural mask
             
             %if exist(SaveFilenameDataUnlimited) && ~exist(fullfile(saveFolder,'CheckedOrientations.txt'))
-            if glass_1_Tissue_2_both_3_contour==1
+            if Neither_0_glass_1_Tissue_2_both_3_contour==1
                 if BinVesselsAlreadyPrepared==1
                     BinOCTATemp=matfile(fullfile(saveFolder{1},'BinVess_CoregTime0-_RotShift.mat'));
                     BinOCTAVarname=whos('-file',fullfile(saveFolder{1},'BinVess_CoregTime0-_RotShift.mat'));
@@ -1064,7 +1064,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                     DimsVessels3D=size(RawOCTA);
                     clearvars RawOCTATemp
                 end
-            elseif glass_1_Tissue_2_both_3_contour==2 && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
+            elseif Neither_0_glass_1_Tissue_2_both_3_contour==2 && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
                 if OnlyTissueLabelTimepoint0==0
                     if BinVesselsAlreadyPrepared==1
                         BinOCTATemp=matfile(fullfile(saveFolder{2},'BinVess_CoregTime0-_NotInZ_TissueMaskApp.mat'));
@@ -1079,7 +1079,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                         clearvars RawOCTATemp
                     end
                 end
-            elseif glass_1_Tissue_2_both_3_contour==3 && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
+            elseif Neither_0_glass_1_Tissue_2_both_3_contour==3 && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
                 if (-1<DaysPrecise && DaysPrecise<=0)
                     if BinVesselsAlreadyPrepared==1
                         BinOCTATemp=matfile(fullfile(saveFolder{2},'BinVess_CoregTime0-_isT0_TissueMaskApp.mat'));
@@ -1142,7 +1142,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                 f=figure;
                 t=tiledlayout(2,3);
                 if BinVesselsAlreadyPrepared==1
-                    if glass_1_Tissue_2_both_3_contour==1
+                    if Neither_0_glass_1_Tissue_2_both_3_contour==1
                         nexttile
                         h1=imshowpair(squeeze(sum(mask_3D_CylindricalProjection,2)),squeeze(sum(BinOCTA,2)));
                         title('Sagital (yz) plane')
@@ -1172,7 +1172,7 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                         figure, imshow3D(cat(2,mask_3D_Unrestricted-BinOCTA,BinOCTA))
                     end
                 else
-                    if glass_1_Tissue_2_both_3_contour==1
+                    if Neither_0_glass_1_Tissue_2_both_3_contour==1
                         nexttile
                         h1=imshowpair(squeeze(sum(mask_3D_Unrestricted,2)),squeeze(sum(RawOCTA,2)));
                         title('Sagital (yz) plane')
@@ -1212,9 +1212,9 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                         switch operation
                             case 0
                                 RightOrientation='Y';
-                                if glass_1_Tissue_2_both_3_contour==1
+                                if Neither_0_glass_1_Tissue_2_both_3_contour==1
                                     fid = fopen(fullfile(saveFolder{1},[PrefixFLU_BRI, 'CheckedOrientations.txt']), 'wt');
-                                elseif (glass_1_Tissue_2_both_3_contour==2 ||glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
+                                elseif (Neither_0_glass_1_Tissue_2_both_3_contour==2 ||Neither_0_glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
                                     fid = fopen(fullfile(saveFolder{2},[PrefixFLU_BRI, 'CheckedOrientations.txt']), 'wt');
                                 end
                                 fprintf(fid, 'Vessels are in the right orientation with respect to this tumour mask');%'Jake said: %f\n', sqrt(1:10));
@@ -1232,15 +1232,15 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
                 
                 %end
             end
-            if glass_1_Tissue_2_both_3_contour==1
+            if Neither_0_glass_1_Tissue_2_both_3_contour==1
                 saveas(f,fullfile(saveFolder{1},[PrefixFLU_BRI, 'FinalMaskCreation.png']))
-            elseif (glass_1_Tissue_2_both_3_contour==2 ||glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
+            elseif (Neither_0_glass_1_Tissue_2_both_3_contour==2 ||Neither_0_glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
                 saveas(f,fullfile(saveFolder{2},[PrefixFLU_BRI, 'FinalMaskCreation.png']))
             end
         end
         
-        if (glass_1_Tissue_2_both_3_contour==2 ||glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
-            if OnlyTissueLabelTimepoint0==0 || (OnlyTissueLabelTimepoint0==1 && glass_1_Tissue_2_both_3_contour==3)
+        if (Neither_0_glass_1_Tissue_2_both_3_contour==2 ||Neither_0_glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
+            if OnlyTissueLabelTimepoint0==0 || (OnlyTissueLabelTimepoint0==1 && Neither_0_glass_1_Tissue_2_both_3_contour==3)
                 %                                                             if DaysPrecise==0
                 %                                                                 SaveFilenameDataUnlimitedTemp=strsplit(SaveFilenameDataUnlimited{2},'_');
                 %                                                                 SaveFilenameDataCylindricalProjTemp=strsplit(SaveFilenameDataCylindricalProj{2},'_')
@@ -1262,5 +1262,5 @@ if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- ha
         
     end
     
-    
+end
 end

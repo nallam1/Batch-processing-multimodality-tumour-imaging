@@ -1,24 +1,55 @@
 function [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(CurrentTimepoint,Timepoint0Analyzed,PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)
+%% Lateral tumour mask creation options
 ImageX=[];%image to be contoured contouring
 binaryImageDrawn=[];
 
 figure('Units','characters','Position',[300 30 60 25]);
 imshow(image1Segmentation);
 title(filenameT)
-
-    % Preparing closest timepoint search relevant to option 5 below
+%% 1) Assessing options available for lateral tumour mask creation
+%% Option 1
+    Question1='1)Draw manually.';
+%% Option 2
+    if isequal(PrefixFLU_BRI,'FLU_')
+        Question2='2)No thanks (directly automatic).';
+    else
+        Question2='N/A';
+    end
+%% Option 3
+if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
+    %
+    Opt3= exist(fullfile(fileparts(SegmentationFolderTimepoint0NotEmpty),'2D OCT-bri','flu Co-registration + Tumour Mask',[MouseNameTimepoint0, ' ROI mask.mat']));
+else
+    Opt3=0;
+end
+    if Opt3
+        Question3='3)Load Timepoint0- previously drawn.';
+    else
+        Question3='N/A';
+    end
+%% Option 4
+    Opt4= exist(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']));%last attempt of same timepoint
+    if Opt4
+        Question4='4)Load Last attempt drawn for this timepoint.';
+    else
+        Question4='N/A';
+    end
+%% Option 5
+    % Preparing closest timepoint search relevant to option 5
         TempFileparts=strsplit(OptFluSegmentationFolder,'\')
             TimeDiff=[];
             Repository2DMasksForGivenMouse=dir(fullfile(TempFileparts{1:3},'2DMasksRepository','**'))
             Filecount=0;
                 for ind=1:length(Repository2DMasksForGivenMouse)
-                    ConsideredFile=Repository2DMasksForGivenMouse.name(ind);
+                    ConsideredFile=Repository2DMasksForGivenMouse(ind).name;
                     if contains(ConsideredFile,PrefixFLU_BRI) && contains(ConsideredFile,' ROI mask.mat')
                         Filecount=Filecount+1;
                         ConsideredFileTimepointTemp1=strsplit(ConsideredFile,'_');
                         ConsideredFileTimepointTemp2=strsplit(ConsideredFileTimepointTemp1{2},' ');
-                        ConsideredFileTimepoint=datetime([ConsideredFileTimepointTemp2{2},ConsideredFileTimepointTemp2{3}]);
-                        TimeDiff(Filecount)=diff(CurrentTimepoint,ConsideredFileTimepoint);
+                        ConsideredFileTimepoint=datetime([ConsideredFileTimepointTemp2{2},' ',strrep(ConsideredFileTimepointTemp2{3},'-',':')]);
+                        TimeDiffTemp=diff([CurrentTimepoint,ConsideredFileTimepoint]);
+                        TimeDiffTemp2=strsplit(sprintf('%s',TimeDiffTemp),':');
+                        TimeDiff(Filecount)=(str2num(TimeDiffTemp2{1})+str2num(TimeDiffTemp2{2})/60)/24;
                         Mask2DName{Filecount}=ConsideredFile;
                     end
                 end
@@ -29,58 +60,30 @@ title(filenameT)
                     ClosestTimepointROIDrawn=Mask2DName{find(TimeDiff==min(TimeDiff))}
                     Opt5=1;
                 end
-if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
-    %% Technique for lateral tumour mask creation
-    Opt3= exist(fullfile(fileparts(SegmentationFolderTimepoint0NotEmpty),'2D OCT-bri','flu Co-registration + Tumour Mask',[MouseNameTimepoint0, ' ROI mask.mat']));
-        
-    %Opt4= exist(fullfile(TempFileparts{1:3},'2DMasksRepository',ClosestTimepointROIDrawn));
     
-    Opt4= exist(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']));%last attempt of same timepoint
-
-    if Opt3 && Opt4 && Opt5
-        CoarseROI_Questionprompt = sprintf('How to proceed with 2D contouring transversely? \n 1)Draw manually \n 2)No thanks (directly automatic)\n 3)Load Timepoint0- previously drawn\n 4)Load Last attempt drawn for this timepoint \n 5)Load closest timepoint drawn.');
-    elseif Opt3 && Opt4
-        CoarseROI_Questionprompt = sprintf('How to proceed with 2D contouring transversely? \n 1)Draw manually \n 2)No thanks (directly automatic)\n 3)Load Timepoint0- previously drawn\n 4)Load Last attempt drawn for this timepoint.');
-    elseif Opt3 && Opt5
-        CoarseROI_Questionprompt = sprintf('How to proceed with 2D contouring transversely? \n 1)Draw manually \n 2)No thanks (directly automatic)\n 3)Load Timepoint0- previously drawn\n 5)Load closest timepoint drawn.');
-    elseif Opt3
-        CoarseROI_Questionprompt = sprintf('How to proceed with 2D contouring transversely? \n 1)Draw manually \n 2)No thanks (directly automatic)\n 3)Load Timepoint0- previously drawn.');
+    if Opt5
+        Question5='5)Load closest timepoint drawn.'
     else
-        CoarseROI_Questionprompt = sprintf('How to proceed with 2D contouring transversely? \n 1)Draw manually \n 2)No thanks (directly automatic).');
+        Question5='N/A';
     end
-elseif Timepoint0Analyzed==0
-    %% Technique for lateral tumour mask creation
-     Opt4= exist(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']))
-    
-    if Opt3 && Opt4 && Opt5
-        CoarseROI_Questionprompt = sprintf('How to proceed with 2D contouring transversely? \n 1)Draw manually \n 2)No thanks (directly automatic)\n 3)Load Timepoint0- previously drawn\n 4)Load Last attempt drawn for this timepoint \n 5)Load closest timepoint drawn.');
-    elseif Opt4 && isequal(PrefixFLU_BRI,'FLU_')
-        CoarseROI_Questionprompt = sprintf('How to proceed with 2D contouring transversely? \n 1)Draw manually \n 2)No thanks (directly automatic)\n 4)Load Last attempt drawn for this timepoint.');
-    elseif Opt4 && isequal(PrefixFLU_BRI,'BRI_')
-        CoarseROI_Questionprompt = sprintf('How to proceed with 2D contouring transversely? \n 1)Draw manually \n 4)Load Last attempt drawn for this timepoint.');
-    elseif ~Opt4 && isequal(PrefixFLU_BRI,'FLU_') %some redundancy in writing but for clarity
-        CoarseROI_Questionprompt = sprintf('How to proceed with 2D contouring transversely? \n 1)Draw manually \n 2)No thanks (directly automatic)');
-        %         else
-        %
-    end
-end
+%% 2) Presenting of options    
+    CoarseROI_Questionprompt = sprintf('How to proceed with 2D contouring transversely? \n %s \n %s\n %s\n %s\n %s',Question1,Question2,Question3,Question4,Question5);
+%% 3) Preparing answer acquisition    
 if Timepoint0Analyzed==1 || (Timepoint0Analyzed==0 && ~(isequal(PrefixFLU_BRI,'BRI_') && ~Opt4))
     fineContouring_Questionprompt=['Perform automatic fine thresholding (Otsu method) 1/0'];
     prompt={CoarseROI_Questionprompt;fineContouring_Questionprompt};
     answer = inputdlg(prompt,'Tumour Segmentation options');%[1 2; 1 2]
 end
-if Timepoint0Analyzed==0 && isequal(PrefixFLU_BRI,'BRI_')%to save on time, reducing options (where there is no choice
-        answer{2}='0'
-        if ~Opt4
-            answer{1}='1';
-        end
+if isequal(PrefixFLU_BRI,'BRI_') && ~Opt3 && ~Opt4 && ~Opt5 %Timepoint0Analyzed==0 && isequal(PrefixFLU_BRI,'BRI_')%to save on time, reducing options (where there is no choice
+    answer{1}='1';
+    answer{2}='0';
 end
 % Find nearest timepoint as well?
 %% Image used
 CoarseROI_Question = str2double(answer{1});
 fineContouring_Question = str2double(answer{2});
 
-if CoarseROI_Question ==1 || CoarseROI_Question ==3 || CoarseROI_Question ==4 %"Manual"
+if CoarseROI_Question ==1 || CoarseROI_Question ==3 || CoarseROI_Question ==4 || CoarseROI_Question ==5 %"Manual"
     figure,
     t=tiledlayout(1,3)
     nexttile
@@ -108,18 +111,32 @@ if CoarseROI_Question ==1 || CoarseROI_Question ==3 || CoarseROI_Question ==4 %"
     end
 elseif CoarseROI_Question==2%"No, thanks"
     ImageX=image1Segmentation;
+end
+if CoarseROI_Question ==3 && Opt3%exist(fullfile(OptFluSegmentationFolder,[char(filenameT),' ROI mask.mat']))
+        %             [name,path]=uigetfile('*.mat', 'Select the ROI mask previously created',OptFluSegmentationFolder)
+        %             load(fullfile(path,name))%(OptFluSegmentationFolder,[char(filenameT),' ROI mask']));%loadROI;
+    Temp=load(fullfile(fileparts(SegmentationFolderTimepoint0NotEmpty),'2D OCT-bri','flu Co-registration + Tumour Mask',[MouseNameTimepoint0,' ROI mask.mat']))
+        TempInfo=whos('-file',fullfile(fileparts(SegmentationFolderTimepoint0NotEmpty),'2D OCT-bri','flu Co-registration + Tumour Mask',[MouseNameTimepoint0,' ROI mask.mat']));
+        TempName=TempInfo.name;
+    binaryImageDrawn=Temp.(TempName);
 elseif CoarseROI_Question ==4 && Opt4%exist(fullfile(OptFluSegmentationFolder,[char(filenameT),' ROI mask.mat']))
     %             [name,path]=uigetfile('*.mat', 'Select the ROI mask previously created',OptFluSegmentationFolder)
     %             load(fullfile(path,name))%(OptFluSegmentationFolder,[char(filenameT),' ROI mask']));%loadROI;
-    load(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']))
+    Temp=load(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']))
+        TempInfo=whos('-file',fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']));
+        TempName=TempInfo.name;
+    binaryImageDrawn=Temp.(TempName);
+elseif CoarseROI_Question ==5 && Opt5%exist(fullfile(OptFluSegmentationFolder,[char(filenameT),' ROI mask.mat']))
+    %             [name,path]=uigetfile('*.mat', 'Select the ROI mask previously created',OptFluSegmentationFolder)
+    %             load(fullfile(path,name))%(OptFluSegmentationFolder,[char(filenameT),' ROI mask']));%loadROI;
+    Temp=load(fullfile(TempFileparts{1:3},'2DMasksRepository',ClosestTimepointROIDrawn))
+        TempInfo=whos('-file',fullfile(TempFileparts{1:3},'2DMasksRepository',ClosestTimepointROIDrawn));
+        TempName=TempInfo.name;
+    binaryImageDrawn=Temp.(TempName);
+%if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
 end
-if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
-    if CoarseROI_Question ==3 && Opt3%exist(fullfile(OptFluSegmentationFolder,[char(filenameT),' ROI mask.mat']))
-        %             [name,path]=uigetfile('*.mat', 'Select the ROI mask previously created',OptFluSegmentationFolder)
-        %             load(fullfile(path,name))%(OptFluSegmentationFolder,[char(filenameT),' ROI mask']));%loadROI;
-        load(fullfile(fileparts(SegmentationFolderTimepoint0NotEmpty),'2D OCT-bri','flu Co-registration + Tumour Mask',[MouseNameTimepoint0,' ROI mask.mat']))
-    end
-end
+    
+%end
 %     assignin('caller','name',n);
 %     assignin('caller','age2050',a);
 close all

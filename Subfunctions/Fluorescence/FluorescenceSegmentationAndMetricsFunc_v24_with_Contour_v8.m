@@ -32,7 +32,7 @@ function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(CurrentTimep
         %     MiceData2.Timepoint.Vols_3_2=[];%method 3_2 calculation of Vol (average diameter calculated from area ~circle) in mm^3
             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Viability=[];%Quantifying average intensity of fluorescence in tumour only (out of all bright spots)
             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_ViabilityCoregistered=[];
-            
+            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).CurrTimepoint=CurrentTimepoint;
             if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed 
                 MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).TimeSinceStartOfTreatment=DaysPrecise;
                 MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).DoseReceivedUpToTimepoint=DoseReceivedUpToTP;
@@ -54,7 +54,7 @@ if isempty(predrawnTumourMaskFilepath) %if some mask not previously drawn
 % NewDirectory=fullfile(currentdir,'Processed Fluorescence');
 %         mkdir(NewDirectory);
 %         cd(NewDirectory)
-filenameT=[string(MouseName) + " " +string(CurrentTimepoint)];%TimepointTrueAndRel];%[mouseName+" after "+int2str(dose)+"Gy, flu_{"+string(Timepoints(k,:))+"}"];%For the sake of reformatting titles
+filenameT=char([sprintf('%s %s',MouseName, strrep(string(CurrentTimepoint),':','-'))]);%[string(MouseName) + " " +string(CurrentTimepoint)];%TimepointTrueAndRel];%[mouseName+" after "+int2str(dose)+"Gy, flu_{"+string(Timepoints(k,:))+"}"];%For the sake of reformatting titles
 %["WC"+int2str(MiceFolderInd)+" after "+int2str(dose)+"Gy, flu_{"+string(Timepoints(k,:))+"}"];%For the sake of reformatting titles
 
 
@@ -466,8 +466,11 @@ end
         
 %         tumor_mask=imwarp(tumor_mask,transform2D);
         save(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
-            TempFileparts=strsplit(OptFluSegmentationFolder,'\')
-        save(fullfile(TempFileparts{1:3},'2DMasksRepository',[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']),'TumourMask2D_aligned','-v7.3')
+%             TempFileparts=strsplit(OptFluSegmentationFolder,'\')
+%             if ~exist(fullfile(TempFileparts{1:3},'2DMasksRepository'),'dir')
+%                 mkdir(fullfile(TempFileparts{1:3},'2DMasksRepository'))
+%             end %WRONG because it is actually post alignment!!!!!!
+%         save(fullfile(TempFileparts{1:3},'2DMasksRepository',[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']),'TumourMask2D_aligned','-v7.3')
 % %% Export to spreadsheet
 %         if performFineThresholding==1
 %         fileSpreadSheet=char([fullfile(Directory,date,fileSpreadSheet), ' with fine automatic thresholding.xlsx'])
