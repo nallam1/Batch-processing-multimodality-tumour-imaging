@@ -149,11 +149,11 @@ countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
                 imshow(image1Segmentation)
 
             %Saving figures Info
-            if CoarseROI_Question==1
+            if CoarseROI_Question==3||CoarseROI_Question==4||CoarseROI_Question==5
                 coarse='-LoadedFromPreviousROI';
-            elseif CoarseROI_Question==2
+            elseif CoarseROI_Question==1
                 coarse='-ManuallyDrawn';
-            elseif CoarseROI_Question==3
+            elseif CoarseROI_Question==2
                 coarse='-FullyAutomatic';
             end
 

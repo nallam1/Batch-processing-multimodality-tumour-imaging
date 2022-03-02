@@ -19,7 +19,7 @@ if Nautomation==1 || CoarseROI_Question== 1%"Manual"%Nautomation is for direct e
     title('Original Image', 'FontSize', 12);
     set(gcf, 'Position', get(0,'Screensize')); % Maximize figure.
     
-    message = sprintf('Left click and hold to begin drawing.\nSimply lift the mouse button to finish');
+    message = sprintf('Left click and hold to begin drawing.\n Make several Pts. and DEL to delete previous.\nSimply close the ROI the mouse button to finish');
     uiwait(msgbox(message));
     h = drawassisted();%imfreehand;
     %h = roipoly(I);
@@ -51,32 +51,52 @@ if CoarseROI_Question== 3 || CoarseROI_Question== 4 || CoarseROI_Question== 5 %"
     xy_drawnIntermediate=bwboundaries(binaryImageDrawn);
     xy_drawnPrevious=[xy_drawnIntermediate{1}(:,2),xy_drawnIntermediate{1}(:,1)];%xy_drawnIntermediate{1};%
     figure,
-    imshow(image_to_be_contoured);%Image_to_be_contoured);
+    img=imshow(image_to_be_contoured);%Image_to_be_contoured);
     axis on;
-    title('Original Image', 'FontSize', 12);
+    if CoarseROI_Question== 3
+        title('Adjust timepoint 0- ROI', 'FontSize', 12);
+    elseif CoarseROI_Question== 4
+        title('Adjust previous attempt ROI', 'FontSize', 12);
+    elseif CoarseROI_Question== 5
+        title('Adjust Closest timepoint ROI', 'FontSize', 12);
+    end
     set(gcf, 'Position', get(0,'Screensize')); % Maximize figure.
     
-    message = sprintf('Left click and hold to begin drawing.\nSimply lift the mouse button to finish');
-    uiwait(msgbox(message));
-    h2= drawassisted('Position',[xy_drawnPrevious],'InteractionsAllowed','all')%drawassisted();%imfreehand;
-    %h2.Selected=1;
+    %     message = sprintf('Left click and hold to begin drawing.\nSimply lift the mouse button to finish');
+    %     uiwait(msgbox(message));
+    h2= drawassisted(img,'Position',[xy_drawnPrevious],'InteractionsAllowed','all')%drawassisted();%imfreehand;
+    %h2.Image=image_to_be_contoured;
     %h = roipoly(I);
     %pos = h.Position;
-    binaryImageDrawn = h2.Position%createMask(h2);%h2.createMask();--not working for some reason looks exactly the same as h?
+    Goodtogo={};
+    opts.WindowStyle='normal'
+    GoodtogoQ=inputdlg(sprintf('Good to go?\n n or type literally anything else or just press enter for yes\n'),'Glass trace',[1,50],{''},opts);
+    %GoodtogoQ=inputdlg(sprintf('Good to go?\n n or type
+    %literally anything else or just press enter for
+    %yes\n'),'Glass trace');%now to be able to interact
+    %with the window
+    Goodtogo=GoodtogoQ{1};
+    if isempty(Goodtogo)
+        Goodtogo= 'Y';
+    end
     
-    FIGURE THIS OUT!!!!
-    
-    %close gcf
-    binaryImageDrawnName=fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']);
-    if sum(binaryImageDrawn,'all')>0 %so making sure you did not simply cancel out of mask creation
-        save(binaryImageDrawnName,'binaryImageDrawn');%save everything about the drawn ROI mask
-        xy_drawnIntermediate=bwboundaries(binaryImageDrawn);
-        xy_drawn=[xy_drawnIntermediate{1}(:,2),xy_drawnIntermediate{1}(:,1)];%xy_drawnIntermediate{1};%
-        TempFileparts=strsplit(OptFluSegmentationFolder,'\')
-        if ~exist(fullfile(TempFileparts{1:3},'2DMasksRepository'),'dir')
-            mkdir(fullfile(TempFileparts{1:3},'2DMasksRepository'))
+    if isequal(Goodtogo,'n')||isequal(Goodtogo,'N')
+        error('Faster (and easier) to just restart from here')
+    else
+        binaryImageDrawn = createMask(h2);%h2.createMask();--not working for some reason looks exactly the same as h?
+        
+        close gcf
+        binaryImageDrawnName=fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']);
+        if sum(binaryImageDrawn,'all')>0 %so making sure you did not simply cancel out of mask creation
+            save(binaryImageDrawnName,'binaryImageDrawn');%save everything about the drawn ROI mask
+            xy_drawnIntermediate=bwboundaries(binaryImageDrawn);
+            xy_drawn=[xy_drawnIntermediate{1}(:,2),xy_drawnIntermediate{1}(:,1)];%xy_drawnIntermediate{1};%
+            TempFileparts=strsplit(OptFluSegmentationFolder,'\')
+            if ~exist(fullfile(TempFileparts{1:3},'2DMasksRepository'),'dir')
+                mkdir(fullfile(TempFileparts{1:3},'2DMasksRepository'))
+            end
+            save(fullfile(TempFileparts{1:3},'2DMasksRepository',[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']),'binaryImageDrawn','-v7.3')%reference image for next contour possibly
         end
-        save(fullfile(TempFileparts{1:3},'2DMasksRepository',[PrefixFLU_BRI, char(filenameT),' ROI mask.mat']),'binaryImageDrawn','-v7.3')%reference image for next contour possibly
     end
 end
 %if (Nautomation==1 && NautomationMet==1) || (CoarseROI_Question== "Manual" && Manual_Question=="Method1") || CoarseROI_Question== "Load ROI"
