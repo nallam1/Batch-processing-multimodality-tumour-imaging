@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below. Thank you"
+authors:
+- family-names: "Allam"
+  given-names: "Nader Mohamed"
+  orcid: "https://orcid.org/0000-0003-3338-0815"
+title: "Batch-processing-multimodality-tumour-imaging"
+version: 1.0.0
+doi: 10.5281/zenodo.1234
+date-released: 2022-03-08
+url: "https://github.com/nallam1/Batch-processing-multimodality-tumour-imaging"
