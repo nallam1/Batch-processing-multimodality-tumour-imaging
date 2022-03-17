@@ -24,22 +24,50 @@ function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(CurrentTimep
 %             MiceData.(Name).(Timepoint).Day=[];
 %             MiceData.(Name).(Timepoint).TotalDoseToDate=[];\
                 SegmentationImageRef=strrep(PrefixFLU_BRI,'_','');
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Area=[];
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Area_3=[];%same as volume without inferring depth just yet
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Vols_3_1=[];%method 3_1 calculation of Vol (long and short axis) in pixels^3
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Vols_3_2=[];%method 3_2 calculation of Vol (average diameter calculated from area ~circle) in pixels^3
-        %     MiceData2.Timepoint.Vols_3_1=[];%method 3_1 calculation of Vol (long and short axis) in mm^3
-        %     MiceData2.Timepoint.Vols_3_2=[];%method 3_2 calculation of Vol (average diameter calculated from area ~circle) in mm^3
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Viability=[];%Quantifying average intensity of fluorescence in tumour only (out of all bright spots)
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_ViabilityCoregistered=[];
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).CurrTimepoint=CurrentTimepoint;
-            if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed 
-                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).TimeSinceStartOfTreatment=DaysPrecise;
-                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).DoseReceivedUpToTimepoint=DoseReceivedUpToTP;
+                whos(MiceData,MiceTumourResponseDataFile)
+                %for ind=1:length(
+                %% finding last attempt
+                    PartsOfMiceDataAttempts=fieldnames(MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}));
+                    PartsOfMiceDataAttemptsAll=[PartsOfMiceDataAttempts{:}];
+        MaxNum=[]%recorded numbers corresponding to attempts (since also may contain subfields that are not attemptx...)
+            if contains(PartsOfMiceDataAttemptsAll,'attempt')
+                for ind=1:length(PartsOfMiceDataAttempts)      
+                    if contains(PartsOfMiceDataAttempts{ind},'attempt')% what are the fields containing attempt
+                        PartsOfMiceDataAttempts{ind}
+                        CurrentConsideredNum=str2num(strrep(PartsOfMiceDataAttempts{ind},'attempt',''))%naming convention is attemptx where x is the number
+                        if ~isempty(MaxNum)
+                            if CurrentConsideredNum>MaxNum%~isempty(CurrentConsideredNum) && 
+                                MaxNum=CurrentConsideredNum%recorded numbers corresponding to attempts (since also may contain subfields that are not attemptx...)
+                            end
+                        else
+                            MaxNum=CurrentConsideredNum
+                        end
+                    end
+                end
+                attemptNum=MaxNum
             else
-                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).TimeSinceStartOfTreatment=[];
-                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).DoseReceivedUpToTimepoint=[];
+                attemptNum=1;%not done previously
             end
+                
+                attempt_Contouring=sprintf('attempt%d',attemptNum);
+       %%         
+%             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_Area=[];
+%             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_Area_3=[];%same as volume without inferring depth just yet
+%             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_Vols_3_1=[];%method 3_1 calculation of Vol (long and short axis) in pixels^3
+%             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_Vols_3_2=[];%method 3_2 calculation of Vol (average diameter calculated from area ~circle) in pixels^3
+%         %     MiceData2.Timepoint.Vols_3_1=[];%method 3_1 calculation of Vol (long and short axis) in mm^3
+%         %     MiceData2.Timepoint.Vols_3_2=[];%method 3_2 calculation of Vol (average diameter calculated from area ~circle) in mm^3
+%             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_Viability=[];%Quantifying average intensity of fluorescence in tumour only (out of all bright spots)
+%             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_ViabilityCoregistered=[];
+            %Defined at the end
+%             MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).CurrTimepoint=CurrentTimepoint;
+%             if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed 
+%                 MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).TimeSinceStartOfTreatment=DaysPrecise;
+%                 MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).DoseReceivedUpToTimepoint=DoseReceivedUpToTP;
+%             else
+%                 MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).TimeSinceStartOfTreatment=[];
+%                 MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).DoseReceivedUpToTimepoint=[];
+%             end
 %% starting processing
 if isempty(predrawnTumourMaskFilepath) %if some mask not previously drawn
 %% Extraction of image for segmentation in several styles      
@@ -253,10 +281,7 @@ end
             W=[statsPre.MinorAxisLength];
             area=[statsPre.Area];
             d_ave=sqrt(area*4/pi);%mean([L,W]);--average diameter more accurate
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Area=area;
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Area_3=L*W*pi/4;
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Vols_3_1=L*W^2*pi/2; %compute the relative volume of the oblate ellipsoid mouse tumour according to the Jackson Lab approximation at this day (k) for this mouse (n)
-            MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Vols_3_2=L*W*d_ave*pi/2; %taking Length, width and assuming heigh is average diameter
+            
             % MiceData2(n).Date(k).Vols_3_1=conv_Pix3_2_mm3(L*W^2/2); %in mm^3
             % MiceData2(n).Date(k).Vols_3_2=conv_Pix3_2_mm3(L*W*d_ave/2); %in mm^3
    
@@ -321,7 +346,7 @@ end
         %figure, 
         %DataToShow=@()text(40,50,char("L = "+num2str(L)+"| W = "+num2str(W)+"| VoL_{Rel} = "+num2str(Rel_Vols(n,k))));
                     roundingSigFigs=max(length(sprintf('%.0f',L)),length(sprintf('%.0f',W)));
-        DataToShow=@()text(-1000,780,sprintf('Metrics [pix]: \n Length = %.0f \n Width = %.0f \n Area = %.0f \n Diameter_{ave}= %.0f\n Volume = %.3e',L,W,area,d_ave,round(MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Vols_3_2,roundingSigFigs,'significant')));%round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')%%positioning barely works--not intuitive but does%DataToShow=@()text(-1000,780,sprintf('All in pixels: \nL_{Rel} = %.0f \nW_{Rel} = %.0f \nA_{Rel} = %.0f \nd_{ave Rel}= %.0f\nVoL_{Rel} = %.3e',L,W,area,d_ave,round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')));%round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')%%positioning barely works--not intuitive but does
+        DataToShow=@()text(-1000,780,sprintf('Metrics [pix]: \n Length = %.0f \n Width = %.0f \n Area = %.0f \n Diameter_{ave}= %.0f\n Volume = %.3e',L,W,area,d_ave,round(L*W*d_ave*pi/2,roundingSigFigs,'significant')));%round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')%%positioning barely works--not intuitive but does%DataToShow=@()text(-1000,780,sprintf('All in pixels: \nL_{Rel} = %.0f \nW_{Rel} = %.0f \nA_{Rel} = %.0f \nd_{ave Rel}= %.0f\nVoL_{Rel} = %.3e',L,W,area,d_ave,round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')));%round(MiceData.(TimepointVarName{1}).(TimepointVarName{2}).Rel_Vols_3_2,roundingSigFigs,'significant')%%positioning barely works--not intuitive but does
             propsText={'fontweight','bold','color','m','fontsize',40,...
            'linewidth',3,'margin',5,'edgecolor',[0 1 1],'backgroundcolor','y'};
         ImageContouring=@()rectangle('Position',statsPre.BoundingBox);%it takes,x,y, width, height to draw rectangle %I could also add curvature factor to make rectangle into ellipse according to rectangle() parameters
@@ -356,8 +381,8 @@ end
         end
         end
         Viability=sum(grayscaleIm,'all')/nnz(LabelledPre);%countI;
-        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_Viability=Viability;%Date(k).Rel_Viability=Viability;
- %fluoro       
+
+%fluoro post-coreg      
         FluImage=imwarp(imwarp(imread(FluFile),Transform2D{1}),Transform2D{2},'OutputView',ReferenceZoom);%imwarp(imread(FluFile),Transform2D,'OutputView',ReferenceZoom);
 %     image3Segmentation=imwarp(imwarp(image3Segmentation,Transform2D{1}),Transform2D{2},'OutputView',ReferenceZoom);%imwarp(image3Segmentation,Transform2D,'OutputView',ReferenceZoom);
     GrayScaleFluImage=rgb2gray(FluImage).*uint8(LabelledPost);%rgb2gray(Labelled.*double(FluImage));
@@ -376,9 +401,9 @@ end
             countI=countI+1;
         end
         end
-        Viability=sum(grayscaleIm,'all')/nnz(LabelledPost);%countI;
+        ViabilityCoregistered=sum(grayscaleIm,'all')/nnz(LabelledPost);%countI;
         
-        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(SegmentationImageRef).Rel_ViabilityCoregistered=Viability;
+        
 %% Figure
         figure,
         FIG=tiledlayout(3,3);
@@ -461,6 +486,23 @@ end
 %         else
 %         MiceTumourResponseDataFile=char([fullfile(Directory,date,MiceTumourResponseDataFile), ' without fine automatic thresholding'])
 %         end    
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_Area=area;
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_Area_3=L*W*pi/4;
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_Vols_3_1=L*W^2*pi/2; %compute the relative volume of the oblate ellipsoid mouse tumour according to the Jackson Lab approximation at this day (k) for this mouse (n)
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_Vols_3_2=L*W*d_ave*pi/2; %taking Length, width and assuming heigh is average diameter
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_Viability=Viability;%Date(k).Rel_Viability=Viability;
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).Rel_ViabilityCoregistered=ViabilityCoregistered;
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).CurrTimepoint=CurrentTimepoint;
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).SegmentingImage=SegmentationImageRef;
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).SegmentationTechniqueCoarse=coarse;
+        MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).SegmentationTechniqueFine=fineContouring_Question;        
+            if Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed 
+                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).TimeSinceStartOfTreatment=DaysPrecise;
+                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).DoseReceivedUpToTimepoint=DoseReceivedUpToTP;
+            else
+                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).TimeSinceStartOfTreatment=[];
+                MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}).(attempt_Contouring).DoseReceivedUpToTimepoint=[];
+            end
 
         save(MiceTumourResponseDataFile, 'MiceData','-v7.3');
         

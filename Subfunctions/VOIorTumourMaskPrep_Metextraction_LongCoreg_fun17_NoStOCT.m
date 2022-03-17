@@ -1,4 +1,4 @@
-function BatchOfFolders= VOIorTumourMaskPrep_Metextraction_LongCoreg_fun17_NoStOCT(Timepoint0Analyzed,TumourMaskFrom_FLU_0_BRI_1,GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,TimepointTrueAndRel,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,Neither_0_glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,OnlyTissueLabelTimepoint0,ActiveMemoryOffload)
+function BatchOfFolders= VOIorTumourMaskPrep_Metextraction_LongCoreg_fun17_NoStOCT(Timepoint0Analyzed,TumourMaskFrom_FLU_0_BRI_1_Varies_2,GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,TimepointTrueAndRel,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,Neither_0_glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,OnlyTissueLabelTimepoint0,ActiveMemoryOffload)
 %Checking need for transverse view 2D tumour mask if applicable
 if contains(MouseName,DirectoriesBareSkinMiceKeyword)%Bareskin mouse
     TumourMaskType='PrismVOI';%Just use some square ROI, but we would still be coregistering to timepoint 0
@@ -11,10 +11,12 @@ end
 %         SegFolder=OptFluSegmentationFolder{2};
 %     end
 
-if TumourMaskFrom_FLU_0_BRI_1==0
-    PrefixFLU_BRI='FLU_';
-elseif TumourMaskFrom_FLU_0_BRI_1==1
-    PrefixFLU_BRI='BRI_';
+if TumourMaskFrom_FLU_0_BRI_1_Varies_2==0
+    PrefixFLU_BRI_Var='FLU_';
+elseif TumourMaskFrom_FLU_0_BRI_1_Varies_2==1
+    PrefixFLU_BRI_Var='BRI_';
+elseif TumourMaskFrom_FLU_0_BRI_1_Varies_2==2
+    PrefixFLU_BRI_Var='Var_';    
 end
 
 if FoundTumourMask2DButCorrectAlignment==1 || FoundTumourMask2DButCorrectAlignment==2 %in case there was an issue in folder naming (saved elsewhere)-which seems to be the case at least in first L0R1 manually selected and saved
@@ -58,10 +60,10 @@ if ~isempty(BatchOfFolders{countBatchFolder,4})%Did pre-create tumour mask 2D an
     %                                     else
     %                                         save(fullfile(SegFolder,['BRI_TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
     %                                     end
-    save(fullfile(SegFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
-    if ~exist(fullfile(SegFolder,[PrefixFLU_BRI,'Mask2DPreCoregTime0-ForScaling.mat']))
+    save(fullfile(SegFolder,[PrefixFLU_BRI_Var,'TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
+    if ~exist(fullfile(SegFolder,[PrefixFLU_BRI_Var,'Mask2DPreCoregTime0-ForScaling.mat']))
         TumourMask2DPreCoregTime0=TumourMask2D_aligned;
-        save(fullfile(SegFolder,[PrefixFLU_BRI,'Mask2DPreCoregTime0-ForScaling.mat']),'TumourMask2DPreCoregTime0','-v7.3')
+        save(fullfile(SegFolder,[PrefixFLU_BRI_Var,'Mask2DPreCoregTime0-ForScaling.mat']),'TumourMask2DPreCoregTime0','-v7.3')
     end
 else
     FLU_BRI_proc=1;
@@ -136,14 +138,14 @@ else
                             mkdir(GrossResponseDir);
                         end
                         %if isempty(BatchOfFolders{countBatchFolder,4}) && ~(exist(fullfile(SegFolder,['TumourMask2D_aligned.mat']))==2)  %If none pre created will generate one (including steps of first coregistering to OCT then segmenting contour
-                        if exist(fullfile(SegFolder,[PrefixFLU_BRI,'SegmentingFilepath.mat'])) %%&& useprevious work
-                            load(fullfile(SegFolder,[PrefixFLU_BRI,'SegmentingFilepath.mat']))
+                        if exist(fullfile(SegFolder,[PrefixFLU_BRI_Var,'SegmentingFilepath.mat'])) %%&& useprevious work
+                            load(fullfile(SegFolder,[PrefixFLU_BRI_Var,'SegmentingFilepath.mat']))
                             SegmentingFile=ChangeFilePaths(DirectoryDataLetter, SegmentingFile);%adapting to whichever directory usb port for data is saved on
                         else
                             [optFlufilenameForSegmentation,optFluFolderForSegmentation]=uigetfile('*.jpg','Please select image of tumour to be segmented (coregistered to raw OCTA en face) transversely',PotentialFolderTempOptFlu);
                             SegmentingFile=fullfile(optFluFolderForSegmentation,optFlufilenameForSegmentation);
                             if optFluFolderForSegmentation~=0
-                                save(fullfile(SegFolder,[PrefixFLU_BRI,'SegmentingFilepath.mat']),'SegmentingFile','-v7.3');
+                                save(fullfile(SegFolder,[PrefixFLU_BRI_Var,'SegmentingFilepath.mat']),'SegmentingFile','-v7.3');
                             end
                         end
                         optFluFolderForSegmentation=fileparts(SegmentingFile);
@@ -165,15 +167,15 @@ else
                         end
                         %% 6) 2D transverse mask creation (tumour segmentation) with previously determined affine transform applied and quantification
                         if ~isempty(indxNotEmpty)
-                            FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(CurrentTimepoint,Timepoint0Analyzed,PrefixFLU_BRI,MouseName,TimepointTrueAndRel,TimepointVarName,transform2D_OptFlu_OCT,Rfixed,GrossResponseDir,SegFolder,[],FluFile,SegmentingFile,OCTA_data2D,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0{indxNotEmpty},MouseNameTimepoint0);%RawsvOCTFile
+                            FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(CurrentTimepoint,Timepoint0Analyzed,PrefixFLU_BRI_Var,MouseName,TimepointTrueAndRel,TimepointVarName,transform2D_OptFlu_OCT,Rfixed,GrossResponseDir,SegFolder,[],FluFile,SegmentingFile,OCTA_data2D,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0{indxNotEmpty},MouseNameTimepoint0);%RawsvOCTFile
                         else
-                            FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(CurrentTimepoint,Timepoint0Analyzed,PrefixFLU_BRI,MouseName,TimepointTrueAndRel,TimepointVarName,transform2D_OptFlu_OCT,Rfixed,GrossResponseDir,SegFolder,[],FluFile,SegmentingFile,OCTA_data2D,DoseReceivedUpToTP,DaysPrecise,[],MouseNameTimepoint0);%RawsvOCTFile
+                            FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(CurrentTimepoint,Timepoint0Analyzed,PrefixFLU_BRI_Var,MouseName,TimepointTrueAndRel,TimepointVarName,transform2D_OptFlu_OCT,Rfixed,GrossResponseDir,SegFolder,[],FluFile,SegmentingFile,OCTA_data2D,DoseReceivedUpToTP,DaysPrecise,[],MouseNameTimepoint0);%RawsvOCTFile
                         end
                         %                         elseif ~isempty(BatchOfFolders{countBatchFolder,4}) && FoundTumourMask2DButCorrectAlignment==0%If already created some mask but not yet quantified
                         %                             %% 6) 2D transverse mask creation (tumour segmentation) with previously determined affine transform applied and quantification % no need to reload reference flu
                         %FluorescenceSegmentationAndMetricsFunc_v23_with_Contour_v7(MouseName,Timepoint,TimepointVarName,transform2D_OptFlu_OCT,Rfixed,GrossResponseDir,OptFluSegmentationFolder,BatchOfFolders{countBatchFolder,4},FluFile,SegmentingFile,OCTA_data2D);%RawsvOCTFile
                         %end
-                        if exist(fullfile(SegFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']))%did it get created successfully?
+                        if exist(fullfile(SegFolder,[PrefixFLU_BRI_Var,'TumourMask2D_aligned.mat']))%did it get created successfully?
                             fprintf('Tumour mask 2D successfully created.\n');
                         else
                             error('Tumour mask 2D not successfully created.\n');
@@ -190,7 +192,7 @@ else
                     ExtractedSquareRangex=(round(DimensionsFOVmm(1)/6/PixSize(1))):(round(5*DimensionsFOVmm(1)/6/PixSize(1)));%(round(width_x/6):round(5*width_x/6))*PixPermm_x;
                     ExtractedSquareRangey=(round(DimensionsFOVmm(2)/6/PixSize(2))):(round(5*DimensionsFOVmm(2)/6/PixSize(2)));%(round(width_y/6):round(5*width_y/6))*PixPermm_x;
                     TumourMask2D_aligned(ExtractedSquareRangex,ExtractedSquareRangey)=1;
-                    save(fullfile(SegFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')%well here no real difference
+                    save(fullfile(SegFolder,[PrefixFLU_BRI_Var,'TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')%well here no real difference
                 end
             elseif FoundTumourMask2DButCorrectAlignment==2 % at least an intermediate was somehow created
                 if isequal(TumourMaskType,'TumourVOI')
@@ -210,10 +212,10 @@ else
                 MaskVarname=whos('-file',BatchOfFolders{countBatchFolder,4});
                 TumourMask2D_aligned=imresize(mask2D.(MaskVarname.name),size(OCTA_data2D));
                 clearvars mask2D
-                save(fullfile(SegFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
-                if ~exist(fullfile(SegFolder,[PrefixFLU_BRI,'Mask2DPreCoregTime0-ForScaling.mat']))
+                save(fullfile(SegFolder,[PrefixFLU_BRI_Var,'TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
+                if ~exist(fullfile(SegFolder,[PrefixFLU_BRI_Var,'Mask2DPreCoregTime0-ForScaling.mat']))
                     TumourMask2DPreCoregTime0=TumourMask2D_aligned;
-                    save(fullfile(SegFolder,[PrefixFLU_BRI,'Mask2DPreCoregTime0-ForScaling.mat']),'TumourMask2DPreCoregTime0','-v7.3')
+                    save(fullfile(SegFolder,[PrefixFLU_BRI_Var,'Mask2DPreCoregTime0-ForScaling.mat']),'TumourMask2DPreCoregTime0','-v7.3')
                 end
             end
         end
@@ -363,7 +365,7 @@ if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOn
         
         if Neither_0_glass_1_Tissue_2_both_3_contour==1
             %% Creating 3D mask as conjunction of tumour lateral contour/ 2D ROI with glass exclusion in depth % still contains air tissue gap between glass and tissue
-            load(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI,'TumourMask2D_aligned.mat']))%load(BatchOfFolders{countBatchFolder,4});
+            load(fullfile(OptFluSegmentationFolder,[PrefixFLU_BRI_Var,'TumourMask2D_aligned.mat']))%load(BatchOfFolders{countBatchFolder,4});
             %MaskVarname=whos('-file',BatchOfFolders{countBatchFolder,4});%should be the coregistered one to timepoint 0- either way by this point
             %mask2D.(MaskVarname.name)
             % Mask Fully created no glass and rotated. Perform analysis to fixed depth from glass bottom
@@ -1077,9 +1079,9 @@ if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOn
                         case 0
                             RightOrientation='Y';
                                 if Neither_0_glass_1_Tissue_2_both_3_contour==1
-                                    fid = fopen(fullfile(saveFolder{1},[PrefixFLU_BRI, 'CheckedOrientations.txt']), 'wt');
+                                    fid = fopen(fullfile(saveFolder{1},[PrefixFLU_BRI_Var, 'CheckedOrientations.txt']), 'wt');
                                 elseif (Neither_0_glass_1_Tissue_2_both_3_contour==2 ||Neither_0_glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
-                                    fid = fopen(fullfile(saveFolder{2},[PrefixFLU_BRI, 'CheckedOrientations.txt']), 'wt');
+                                    fid = fopen(fullfile(saveFolder{2},[PrefixFLU_BRI_Var, 'CheckedOrientations.txt']), 'wt');
                                 end
                                 fprintf(fid, 'Vessels are in the right orientation with respect to this tumour mask');%'Jake said: %f\n', sqrt(1:10));
                                 fclose(fid);
@@ -1097,9 +1099,9 @@ if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOn
                 %end
             end
             if Neither_0_glass_1_Tissue_2_both_3_contour==1
-                saveas(f,fullfile(saveFolder{1},[PrefixFLU_BRI, 'FinalMaskCreation.png']))
+                saveas(f,fullfile(saveFolder{1},[PrefixFLU_BRI_Var, 'FinalMaskCreation.png']))
             elseif (Neither_0_glass_1_Tissue_2_both_3_contour==2 ||Neither_0_glass_1_Tissue_2_both_3_contour==3) && Timepoint0Analyzed==1 %Is the analysis being conducted before timepoint 0- has been acquired and been processed
-                saveas(f,fullfile(saveFolder{2},[PrefixFLU_BRI, 'FinalMaskCreation.png']))
+                saveas(f,fullfile(saveFolder{2},[PrefixFLU_BRI_Var, 'FinalMaskCreation.png']))
             end
         end
         
