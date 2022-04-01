@@ -26,7 +26,7 @@ function [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=Ch
     
         if CoarseROI_Question ==1 || CoarseROI_Question ==3 || CoarseROI_Question ==4 %"Manual"  
             figure,
-            t=tiledlayout(1,3)
+            t=tiledlayout(1,4)
             nexttile
                 imshow(image1Segmentation)
                 title('1')
@@ -36,6 +36,10 @@ function [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=Ch
             nexttile
                 imshow(image3Segmentation)
                 title('3')
+            nexttile
+                imshow(image3Segmentation)
+                title('4')
+                    
             title(t,sprintf('Image options for %s',filenameT))
             
             answer3=[];
