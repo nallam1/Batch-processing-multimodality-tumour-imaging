@@ -1,4 +1,4 @@
-function [coarseContouredI,coarseContouredIGrey, fineContouredI,binaryImageDrawn, xy_drawn]= Coarse_Fine_contour_v8_withLoadingAndAdjustment(PrefixFLU_BRI,image_for_reference,colourmap, image_to_be_contoured,filenameT,Nautomation,performFineThresholding,CoarseROI_Question,fineContouring_Question,binaryImageDrawn, xy_drawn,OptFluSegmentationFolder)
+function [coarseContouredI,coarseContouredIGrey, fineContouredI,binaryImageDrawn, xy_drawn]= Coarse_Fine_contour_v8_withLoadingAndAdjustment(answer3,PrefixFLU_BRI,image_for_reference,colourmap, image_to_be_contoured,filenameT,Nautomation,performFineThresholding,CoarseROI_Question,fineContouring_Question,binaryImageDrawn, xy_drawn,OptFluSegmentationFolder)
 %% Description
 %Ask user to coarsely contour image and/or further automatic fine automatic
 %thresholding (the user is prompted beforehand based on a given image to
@@ -14,7 +14,12 @@ function [coarseContouredI,coarseContouredIGrey, fineContouredI,binaryImageDrawn
 %% Asking user to coarsely contour first
 if Nautomation==1 || CoarseROI_Question== 1%"Manual"%Nautomation is for direct entry the other way is decide through the app GUI
     figure,
-    imshow(image_to_be_contoured);%Image_to_be_contoured);
+        imshow(image_to_be_contoured);%Image_to_be_contoured);
+    if answer3==4
+        colormap(gca, 'jet'); 
+            limits = [0,255];
+            set(gca,'clim',limits([1,end]))  
+    end
     axis on;
     title('Original Image', 'FontSize', 12);
     set(gcf, 'Position', get(0,'Screensize')); % Maximize figure.

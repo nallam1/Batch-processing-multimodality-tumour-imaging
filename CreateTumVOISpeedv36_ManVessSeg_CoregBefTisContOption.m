@@ -21,6 +21,7 @@ tic
 % Contains vascular map
 %% *****************3D tumour mask creation or only metric extraction and 2D tumour mask creation*****************
 Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2=0;%For speed complete 0 on all files to be processed then once all complete, change to 1 and allow the program to select the files to be used to generate the full 3D masks and longitudinally coregistered data sets. Select 2 if you prefer to do it all at once, seeing the results as you go
+RepeatCheck=1;%allow to check 2D brightfield/fluorescence mask just shows last attempt at given timepoint and you accept it or not. if accepted it will just skip all other steps if already completed before.
 VisualizeResults=1;%whether to check created 3D mask before proceeding to next creation for approval
 %% *****************Tumour Mask creation settings*****************
 % General
@@ -95,7 +96,7 @@ end
 RawVasculatureFileKeywordRaw={'D3D_single.mat';'SV_volume.mat'};
 stOCTFileKeyword={'st3D_uint16.mat'};
 % Lateral Tumour mask
-TumourMaskFrom_FLU_0_BRI_1_Varies_2=0;
+TumourMaskFrom_FLU_0_BRI_1_Varies_2=2;
 predrawnTumourMaskFileKeyword={'TumourMask2D_aligned_coregTime0.mat';'TumourMask2D_aligned.mat';'TumourMask2D.mat';'tumor_mask.mat'};%.mat%'tumor_mask'%{}%Tumour_mask2D.mat
 if TumourMaskFrom_FLU_0_BRI_1_Varies_2==0
     PrefixFLU_BRI='FLU_';
@@ -1328,7 +1329,7 @@ elseif ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3==2 || ManualSelFew_0
                     fprintf('Missing 2D contours (tissue or glass mode according to setting), skipping\n')
                     continue
                 else
-                    AlreadyCompletedTumourMask2D=exist(TumourMask2DUncoregT0Filename,'file')
+                    AlreadyCompletedTumourMask2D=exist(TumourMask2DUncoregT0Filename,'file') && ~RepeatCheck%even if completed previously will go over check (but not actually necessarily repeated creation of mask just final steps of confirming mask is okay 
                     AlreadyCompletedJustContouring= ((Neither_0_glass_1_Tissue_2_both_3_contour==1 && exist(saveContour{1}) ) || (Neither_0_glass_1_Tissue_2_both_3_contour==2 && exist(saveContour{2})) || (Neither_0_glass_1_Tissue_2_both_3_contour==3 && exist(saveContour{1}) && exist(saveContour{2})))
                     AlreadyCompletedMaskCreation=((Neither_0_glass_1_Tissue_2_both_3_contour==1 && exist(SaveFilenameDataUnlimited_UnCoregT0{1})) || (Neither_0_glass_1_Tissue_2_both_3_contour==2 && exist(SaveFilenameDataUnlimited{2})) || (Neither_0_glass_1_Tissue_2_both_3_contour==3 && exist(SaveFilenameDataUnlimited{2}))) %&& exist(SaveFilenameDataUnlimited{1})
                     %% Binarization already performed? (whether or not stated BinVesselsAlreadyPrepared==1)

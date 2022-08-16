@@ -89,7 +89,10 @@ for DataFolderInd=1:NumberFilesToProcess
         fprintf('Large memory load detected, readjusting processing for efficiency.\n')
         Patching=2;% in case automatically decided to patch for memory reasons
     end
-    DimsDataFull_pix(4)=DimsDataFull_pix(4)/2;%rescaling before entering loop
+    %DimsDataFull_pix(4)=DimsDataFull_pix(4)/2;%rescaling before entering
+    %loop--August 14 2022, I think it is best to make this change only
+    %after having performed CDV processing--correct!
+    %Maybe a workaround could be to just load every other frame along y
     if Patching==1 || Patching==2
         meanStruct=cell(numStacks,1);
         D3DPatch=cell(numStacks,1);%D3D_Patch
@@ -138,7 +141,11 @@ for DataFolderInd=1:NumberFilesToProcess
             fprintf('Stitching together complex data')
             Patch_stack_Complex=zeros(DimsDataFull_pixUsed);
             for ind3=PatchesIntermediate:-1:1
-                Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*ind3-1)+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=(imresizen(single(fetchOutputs(F_SubStack_Re(ind3))),[1 1 1 .5])+Im1*imresizen(single(fetchOutputs(F_SubStack_Im(ind3))),[1 1 1 .5]));
+                Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*ind3-1)+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=single(fetchOutputs(F_SubStack_Re(ind3)))+Im1*single(fetchOutputs(F_SubStack_Im(ind3)));
+                    %Aug 14 2022 realized resizing maybe causing weird artifacts in
+                    %image?--yes since averages frames together than we take
+                    %decorrelation from the averaged frame
+                %Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*ind3-1)+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=(imresizen(single(fetchOutputs(F_SubStack_Re(ind3))),[1 1 1 .5])+Im1*imresizen(single(fetchOutputs(F_SubStack_Im(ind3))),[1 1 1 .5]));
                 %                         Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*ind3-1)+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=(imresizen(single(fetchOutputs(F_SubStack_Re(ind3))),DimsDataPatch_pixUsed(ind3,:))+Im1*imresizen(single(fetchOutputs(F_SubStack_Im(ind3))),DimsDataPatch_pixUsed(ind3,:)));
                 %                         Patch_stack_Re{idxFetchedRe}=imresizen(single(RealP),DimsDataFull_pix(1),[DimsDataFull_pix(2),DimsDataFull_pix(1),DimsDataFull_pix(4)/2]);%not necessairly in right order
                 %                         Patch_stack_Im{idxFetchedIm}=imresizen(single(ImaginaryP),[DimsDataFull_pix(2),DimsDataFull_pix(1),DimsDataFull_pix(4)/2]);
@@ -150,7 +157,11 @@ for DataFolderInd=1:NumberFilesToProcess
              %% 3) Loading given patch or full volume of Complex data & determining dimensions of data set
             [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,PatchCount);
             fprintf('Keeping as separate complex data patches for memory efficiency.\n Completing patch %d/%d \n', PatchCount,numStacks)
-            Patch_stack_Complex=(imresizen(single(fetchOutputs(F_SubStack_Re)),[1 1 1 .5])+Im1*imresizen(single(fetchOutputs(F_SubStack_Im)),[1 1 1 .5]));
+            Patch_stack_Complex=single(fetchOutputs(F_SubStack_Re))+Im1*single(fetchOutputs(F_SubStack_Im));
+            %Aug 14 2022 realized resizing maybe causing weird artifacts in
+            %image?--yes since averages frames together than we take
+            %decorrelation from the averaged frame
+            %(imresizen(single(fetchOutputs(F_SubStack_Re)),[1 1 1 .5])+Im1*imresizen(single(fetchOutputs(F_SubStack_Im)),[1 1 1 .5]));
             %                         F_SubStack_Re(PatchCount)=[];
             %                         F_SubStack_Im(PatchCount)=[];
             %                 elseif Patching==2

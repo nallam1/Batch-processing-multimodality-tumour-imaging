@@ -24,7 +24,7 @@ function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(CurrentTimep
 %             MiceData.(Name).(Timepoint).Day=[];
 %             MiceData.(Name).(Timepoint).TotalDoseToDate=[];\
                 SegmentationImageRef=strrep(PrefixFLU_BRI,'_','');
-                whos(MiceData,MiceTumourResponseDataFile)
+%                 whos(MiceData,MiceTumourResponseDataFile)
                 %for ind=1:length(
                 %% finding last attempt
                     PartsOfMiceDataAttempts=fieldnames(MiceData.(MouseName).(TimepointVarName{1}).(TimepointVarName{2}));
@@ -70,72 +70,70 @@ function FluorescenceSegmentationAndMetricsFunc_v24_with_Contour_v8(CurrentTimep
 %             end
 %% starting processing
 if isempty(predrawnTumourMaskFilepath) %if some mask not previously drawn
+filenameT=char([sprintf('%s %s',MouseName, strrep(string(CurrentTimepoint),':','-'))]);%[string(MouseName) + " " +string(CurrentTimepoint)];%TimepointTrueAndRel];%[mouseName+" after "+int2str(dose)+"Gy, flu_{"+string(Timepoints(k,:))+"}"];%For the sake of reformatting titles
+    AlreadyAligned=0; %creating brand new mask
 %% Extraction of image for segmentation in several styles      
+%% image style 1
        image1Segmentation= imread(SegmentingFile);
        [image2Draft, colourmap] = rgb2ind(image1Segmentation,256);%imports image into given name as a 2D matrix of number of pixels pre row * per column
        %colourmap helps with later epifluorescence viability colourmap 
        %must first change to indexed image, as jpg is true colour image
         fprintf('\nImage loaded! \n\n')
         
-% MiceData.(mouseName).(Timepoint).TotalDoseToDate=dose;
-
-% NewDirectory=fullfile(currentdir,'Processed Fluorescence');
-%         mkdir(NewDirectory);
-%         cd(NewDirectory)
-filenameT=char([sprintf('%s %s',MouseName, strrep(string(CurrentTimepoint),':','-'))]);%[string(MouseName) + " " +string(CurrentTimepoint)];%TimepointTrueAndRel];%[mouseName+" after "+int2str(dose)+"Gy, flu_{"+string(Timepoints(k,:))+"}"];%For the sake of reformatting titles
-%["WC"+int2str(MiceFolderInd)+" after "+int2str(dose)+"Gy, flu_{"+string(Timepoints(k,:))+"}"];%For the sake of reformatting titles
-
-
     f2 = figure('visible','off');
     imshow(image2Draft)
     saveas(f2, fullfile(OptFluSegmentationFolder,[filenameT ' format 2.jpg']),'jpg')%figure format 2 for app
-
-image2_O=imread(fullfile(OptFluSegmentationFolder,[filenameT ' format 2.jpg'])); %First saved as a true colour format image
-[Cheight,Cwidth]=size(image2Draft);
-[InCheight,InCwidth,RGBplanes]=size(image2_O);
-
-
-image2_1=rgb2gray(image2_O);
-countXmax=0;y=round(size(image2_1,1)/2);%starting halfway up image
-    for x=round(size(image2_1,2)/2):round(size(image2_1,2))%first half of image
-    if image2_1(y,x)==255
-    countXmax=countXmax+1;
-    end
-    end
-countXmin=0;yy=round(size(image2_1,1)/2);%starting halfway up image
-    for xx=1:round(size(image2_1,2)/2)%first half of image
-    if image2_1(yy,xx)==255
-    countXmin=countXmin+1;
-    end
-    end
+%% image style 2
+    image2_O=imread(fullfile(OptFluSegmentationFolder,[filenameT ' format 2.jpg'])); %First saved as a true colour format image
+    [Cheight,Cwidth]=size(image2Draft);
+    [InCheight,InCwidth,RGBplanes]=size(image2_O);
     
-countYmin=0;xx=round(size(image2_1,2)/2);%starting halfway up image
-    for yy=1:round(size(image2_1,1)/2)%first half of image
-    if image2_1(yy,xx)==255
-    countYmin=countYmin+1;
-    end
-    end
-countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
-    for y=round(size(image2_1,1)/2):round(size(image2_1,1))%first half of image
-    if image2_1(y,x)==255
-    countYmax=countYmax+1;
-    end
-    end
+    image2_1=rgb2gray(image2_O);
+     %cropping
+        countXmax=0;y=round(size(image2_1,1)/2);%starting halfway up image
+            for x=round(size(image2_1,2)/2):round(size(image2_1,2))%first half of image
+            if image2_1(y,x)==255
+            countXmax=countXmax+1;
+            end
+            end
+        countXmin=0;yy=round(size(image2_1,1)/2);%starting halfway up image
+            for xx=1:round(size(image2_1,2)/2)%first half of image
+            if image2_1(yy,xx)==255
+            countXmin=countXmin+1;
+            end
+            end
+
+        countYmin=0;xx=round(size(image2_1,2)/2);%starting halfway up image
+            for yy=1:round(size(image2_1,1)/2)%first half of image
+            if image2_1(yy,xx)==255
+            countYmin=countYmin+1;
+            end
+            end
+        countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
+            for y=round(size(image2_1,1)/2):round(size(image2_1,1))%first half of image
+            if image2_1(y,x)==255
+            countYmax=countYmax+1;
+            end
+            end
     xscale=InCwidth-(countXmin+countXmax);
     yscale=InCheight-(countYmin+countYmax);
     image2_2=image2_O(countYmin:countYmin+yscale-1,countXmin:countXmin+xscale-1,:);
     image2Segmentation=imresize(image2_2,[Cheight Cwidth]);%figure format 2 for app
     %figure,imshow(imfuse(image1,image2))%test overlay
  
-
-%% continue executing the image processing
-        %global imageGr
+%% image style 3
         image3Segmentation=ind2gray(image2Draft,colourmap);
         %     f3 = figure('visible','off');
         %     imshow(image3)
         %     saveas(f3, [filenameT+' format 3'],'jpg')%figure format 3 for app
         %Extraction of different colour planes
-%% Visualization of these extracted individual colour planes if needed
+%% image style 4        
+        FluImageNotTransformed=imread(FluFile);%imwarp(,Transform2D{1});
+            GrayScaleFluImage=rgb2gray(FluImageNotTransformed);%rgb2gray(Labelled.*double(FluImage));
+                grayscaleIm=GrayScaleFluImage;%coarseContouredIGrey;%rgb2gray(OriginalI.*fineContouredI);%rgb2gray(OriginalI)%coarseContouredIcropped); %this part can be improved via apodization, I subtract 7 as determined by iteratively through trial and error 
+                    indIm=gray2ind(grayscaleIm);%Convert to index image--each index corresponds to an intensity value which can also be mapped to a colourmap
+                        image4Segmentation= floor(256/double(max(max(indIm))))*indIm;
+        %% Visualization of these extracted individual colour planes if needed
         % figure;
         % imshowpair(image,imageGr,'Montage');
         % title('Original image vs gray-scale image')
@@ -156,7 +154,7 @@ countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
             if Nautomation_of_image_thresholding==2 %%in case you decided that image ROI selection will be decided previously to be on a case to case basis
                 %Question_to_user_4_App(image1Segmentation,image2Segmentation,image3Segmentation,filenameT)
                 %uiwait(gcf)
-                [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(CurrentTimepoint,Timepoint0Analyzed,PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0);
+                [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn,answer3]=ChooseImageStyleOptFluStyleSegmentv2(CurrentTimepoint,Timepoint0Analyzed,SegmentingFile,PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,image4Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0);
                 xy_drawnIntermediate=bwboundaries(binaryImageDrawn);
                 if isempty(xy_drawnIntermediate)==0
                     xy_drawn=xy_drawnIntermediate{1};
@@ -165,12 +163,24 @@ countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
             end
 
             %% Tumour Mask creation Manual
-            [coarseContouredIPrealignment,coarseContouredIGreyPrealignment, fineContouredIPrealignment,binaryImageDrawn,xy_drawn]=Coarse_Fine_contour_v8_withLoadingAndAdjustment(PrefixFLU_BRI,image1Segmentation,colourmap,ImageX,filenameT,Nautomation_of_image_thresholding,performFineThresholding,CoarseROI_Question,fineContouring_Question, binaryImageDrawn,xy_drawn,OptFluSegmentationFolder);
+            [coarseContouredIPrealignment,coarseContouredIGreyPrealignment, fineContouredIPrealignment,binaryImageDrawn,xy_drawn]=Coarse_Fine_contour_v8_withLoadingAndAdjustment(answer3,PrefixFLU_BRI,image1Segmentation,colourmap,ImageX,filenameT,Nautomation_of_image_thresholding,performFineThresholding,CoarseROI_Question,fineContouring_Question, binaryImageDrawn,xy_drawn,OptFluSegmentationFolder);
             figSatisfied=figure; 
-            tiledlayout(3,2)
+            tiledlayout(4,2)
             nexttile
                 imshow(fineContouredIPrealignment)
                     %brighten(.5)
+            nexttile,%subplot(2,2,4),
+                %Showing fluorescently labelled image for reference
+                    [LabelledPreNotTransformed, ~]=bwlabel(fineContouredIPrealignment, 8);%imwarp(,Transform2D{1})%labels Black and White image, via 8 level connectivity (or level connectivity (which adjacent pixels considered neighbours--> are the directly diagonal pixels also considered part of the same object?--then 8)
+                GrayScaleFluImage=rgb2gray(FluImageNotTransformed).*uint8(LabelledPreNotTransformed);%rgb2gray(Labelled.*double(FluImage));
+                grayscaleIm=GrayScaleFluImage;%coarseContouredIGrey;%rgb2gray(OriginalI.*fineContouredI);%rgb2gray(OriginalI)%coarseContouredIcropped); %this part can be improved via apodization, I subtract 7 as determined by iteratively through trial and error 
+                indIm=gray2ind(grayscaleIm);%Convert to index image--each index corresponds to an intensity value which can also be mapped to a colourmap
+                rescaledindIm= floor(256/double(max(max(indIm))))*indIm;
+                imshow(rescaledindIm);
+
+                colormap(gca, 'jet'); 
+                limits = [0,255];
+                set(gca,'clim',limits([1,end]))       
             nexttile
                 imshowpair(image1Segmentation,fineContouredIPrealignment)
             nexttile(3,[2,2])%at position 3 in 3x2 layout image occupies 2x2 square
@@ -242,9 +252,8 @@ countYmax=0;x=round(size(image2_1,2)/2);%starting halfway up image
     %         end
     %         %% Tumour Mask creation Automatic
     %         [coarseContouredI,coarseContouredIGrey, fineContouredI,binaryImageDrawn,xy_drawn]=Coarse_Fine_contour_v5(image2Draft,map,ImageX,filenameT,Nautomation_of_image_thresholding,performFineThresholding,CoarseROI_Question,fineContouring_Question, binaryImageDrawn,xy_drawn);
-    AlreadyAligned=0;
     end
-else
+else %loading previously created mask
     xy_drawn=[];
     tempMask2D=load(predrawnTumourMaskFilepath);
     FindVarName=whos('-file', predrawnTumourMaskFilepath);

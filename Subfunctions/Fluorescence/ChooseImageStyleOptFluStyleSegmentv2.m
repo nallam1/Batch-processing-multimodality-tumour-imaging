@@ -1,4 +1,4 @@
-function [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn]=ChooseImageStyleOptFluStyleSegmentv2(CurrentTimepoint,Timepoint0Analyzed,PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)
+function [CoarseROI_Question,fineContouring_Question,ImageX,binaryImageDrawn,answer3]=ChooseImageStyleOptFluStyleSegmentv2(CurrentTimepoint,Timepoint0Analyzed,SegmentingFile,PrefixFLU_BRI,image1Segmentation,image2Segmentation,image3Segmentation,image4Segmentation,filenameT,OptFluSegmentationFolder,SegmentationFolderTimepoint0NotEmpty,MouseNameTimepoint0)
 %% Lateral tumour mask creation options
 ImageX=[];%image to be contoured contouring
 binaryImageDrawn=[];
@@ -10,7 +10,7 @@ title(filenameT)
 %% Option 1
     Question1='1)Draw manually.';
 %% Option 2
-    if isequal(PrefixFLU_BRI,'FLU_')
+    if contains(SegmentingFile,'flu') && ~contains(SegmentingFile,'flu_0') %isequal(PrefixFLU_BRI,'FLU_')
         Question2='2)No thanks (directly automatic).';
     else
         Question2='N/A';
@@ -85,21 +85,28 @@ fineContouring_Question = str2double(answer{2});
 
 if CoarseROI_Question ==1 || CoarseROI_Question ==3 || CoarseROI_Question ==4 || CoarseROI_Question ==5 %"Manual"
     figure,
-    t=tiledlayout(1,3)
+    t=tiledlayout(1,4)
     nexttile
     imshow(image1Segmentation)
-    title('1')
+        title('1')
     nexttile
     imshow(image2Segmentation)
-    title('2')
+        title('2')
     nexttile
     imshow(image3Segmentation)
-    title('3')
+        title('3')
+    nexttile
+    imshow(image4Segmentation)
+        colormap(gca, 'jet'); 
+            limits = [0,255];
+            set(gca,'clim',limits([1,end]))    
+    title('4')
+    
     title(t,sprintf('Image options for %s',filenameT))
     
     answer3=[];
-    while isempty(answer3) || (answer3~=1 && answer3~=2 && answer3~=3)
-        prompt3={'What image should be used for manual segmentation? (1,2, or 3)'}
+    while isempty(answer3) || (answer3~=1 && answer3~=2 && answer3~=3 && answer3~=4)
+        prompt3={'What image should be used for manual segmentation? (1,2,3, or 4)'}
         answer3 = str2double(inputdlg(prompt3,'Tumour segmentation image format'));%,[1 2]);%assignin difficult to make work%f=Manual_Contouring_method_1v2(image1Segmentation,image2Segmentation,image3Segmentation,filenameT)
     end
     if answer3==1
@@ -108,6 +115,9 @@ if CoarseROI_Question ==1 || CoarseROI_Question ==3 || CoarseROI_Question ==4 ||
         ImageX=image2Segmentation;
     elseif answer3==3
         ImageX=image3Segmentation;
+    elseif answer3==4
+        ImageX=image4Segmentation;
+        %ColMap=
     end
 elseif CoarseROI_Question==2%"No, thanks"
     ImageX=image1Segmentation;
