@@ -10,24 +10,25 @@
 %% Or nevermind it seems to have no effect
 clear
 clc
-tic
+tstart=tic %Defined to be able to keep track of time elapsed across functions
 %% 0) User input
 %Processing scripts
-ProcScriptDirectory='D:\Processing code\OCT\1) SvOCT processing\Codes_for_Ottawa\Main for bulk processing-Nader'
+ProcScriptDirectory='D:\git\BatchProcessOptical_OCT-BRI-FLU'%'D:\Processing code\OCT\1) SvOCT processing\Codes_for_Ottawa\Main for bulk processing-Nader'
 
 addpath(genpath(ProcScriptDirectory))
 addpath(genpath('D:\'))
 
 %Raw data file select style
-RawDataDirectory='F:\SBRT project March-June 2021'%'G:\PDXovo';%'G:\SBRT project March-June 2021'
+RawDataDirectory='F:\SBRT project March-June 2021'%'H:\March-June 2022 experiments'%'G:\PDXovo';%'G:\SBRT project March-June 2021'
 cd(RawDataDirectory)
 addpath(genpath(RawDataDirectory))
 ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3=1;
 MatlabVer=2020;%version of Matlab being used %only matters if the year is before/after 2014
+PerformSegmentation_0_No_1_Yes=0;%added temporarily Aug 16 2022, as a means for testing without glass-removal code being fully implemented, and noise floor measured for ID-BISIM algorithm--maybe take noise floor as a few pixels above bottom since bottom sometimes has weird artifacts (based on what was seen while performing attenuation coefficient distribution computations).
 
 if ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3==1
-    Mice={'L0R4'}%{'L0R1';'L0R2';'L0R3';'L0R4';'L1R1';'L1R2';'L1R3';'L2R2';'L2R4';'BS1';'BS2';'BS3'};%{'PDXovo-786B';'PDXovo-786C'};%%{'L2R2';'L2R4'};%{'L1R1';'L1R3'};
-    Timepoints={'Apr 9 2021'}%{'Apr 9 2021';'Apr 16 2021';'Apr 23 2021';'Apr 13 2021'};%'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021';'Apr 24 2021';'Apr 26 2021';'Apr 28 2021'}%{'Apr 22 2021';}%{'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021'};%{'Apr 5 2021';'Apr 7 2021';'Apr 9 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 16 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021'};
+    Mice={'L0R4'}%{'0322H3M2';'0322H3M3'}%{'L0R4'}%{'L0R1';'L0R2';'L0R3';'L0R4';'L1R1';'L1R2';'L1R3';'L2R2';'L2R4';'BS1';'BS2';'BS3'};%{'PDXovo-786B';'PDXovo-786C'};%%{'L2R2';'L2R4'};%{'L1R1';'L1R3'};
+    Timepoints={'Apr 9 2021'}%{'Jun 6 2022';'Jun 15 2022';'Jul 26 2022';'Jul 29 2022';'Aug 5 2022'}%{'Apr 9 2021'}%{'Apr 9 2021';'Apr 16 2021';'Apr 23 2021';'Apr 13 2021'};%'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021';'Apr 24 2021';'Apr 26 2021';'Apr 28 2021'}%{'Apr 22 2021';}%{'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021'};%{'Apr 5 2021';'Apr 7 2021';'Apr 9 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 16 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021'};
     %{'Apr 27 2021'};%
     Directories=[];
     %NumFiles_max=NumMice*NumTime;%may not all have all timepoints
@@ -37,7 +38,7 @@ else
     Directories=[];
 end
 
-Patching=0;%%if 9x9 must be patched it seems for memory reasons: Requested 500x1164x8x2400 (83.3GB) array exceeds maximum array size preference. Creation of arrays greater than this limit may take a long
+Patching=1;%%if 9x9 must be patched it seems for memory reasons: Requested 500x1164x8x2400 (83.3GB) array exceeds maximum array size preference. Creation of arrays greater than this limit may take a long
 %time and cause MATLAB to become unresponsive.
 
 TallorNot=0;%can be ignored (this was an attempt to reduce memory usage
@@ -47,8 +48,6 @@ TimeRepsPerYstepToUse=5;
 if TimeRepsPerYstepToUse<2
     error('Choose at least 2 repetitions per y-step')
 end
-
-
 
 iSNR_physicalPix="Pix" %"Phys" or "Pix"
 BISIM_physicalPix="Pix" %"Phys" or "Pix"
@@ -107,8 +106,8 @@ for DataFolderInd=1:NumberFilesToProcess
         PatchesIntermediate=numStacks;
         %meanStruct=single(zeros(DimsDataFull_pix(1),DimsDataFull_pix(2),DimsDataFull_pix(4)));
         %         D3D=single(zeros(DimsDataFull_pix(1),DimsDataFull_pix(2),DimsDataFull_pix(4)));
-        vessels_processed_binary=single(zeros(DimsDataFull_pix(1),DimsDataFull_pix(2),DimsDataFull_pix(4)));
-        iSNRFramey=single(zeros(DimsDataFull_pix(1),DimsDataFull_pix(2),DimsDataFull_pix(4)));%iSNRFramey=zeros(DimsDataFull_pix(4),1);
+        %Define Later vessels_processed_binary=single(zeros(DimsDataFull_pix(1),DimsDataFull_pix(2),DimsDataFull_pix(4)));
+        %Define Later iSNRFramey=single(zeros(DimsDataFull_pix(1),DimsDataFull_pix(2),DimsDataFull_pix(4)));%iSNRFramey=zeros(DimsDataFull_pix(4),1);
         BISIMFramey=zeros(DimsDataFull_pix(4),1);
         Alpha1_F=zeros(DimsDataFull_pix(4),1);
         Alpha2_F=zeros(DimsDataFull_pix(4),1);
@@ -136,12 +135,13 @@ for DataFolderInd=1:NumberFilesToProcess
         fprintf('Creating the %d patches of complex data matrices.\n',numStacks)
         if Patching==0
              %% 3) Loading given patch or full volume of Complex data & determining dimensions of data set
-            [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,[]);%Ignore patchcount since load all
+            [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,[],tstart);%Ignore patchcount since load all
              %[F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime5_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse);
             fprintf('Stitching together complex data')
-            Patch_stack_Complex=zeros(DimsDataFull_pixUsed);
+            Patch_stack_Complex=single(zeros(DimsDataFull_pixUsed));
             for ind3=PatchesIntermediate:-1:1
-                Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*ind3-1)+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=single(fetchOutputs(F_SubStack_Re(ind3)))+Im1*single(fetchOutputs(F_SubStack_Im(ind3)));
+                Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*(ind3-1))+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=single(fetchOutputs(F_SubStack_Re(ind3)))+Im1*single(fetchOutputs(F_SubStack_Im(ind3)));
+                    %Aug 15 try to load every other frame?
                     %Aug 14 2022 realized resizing maybe causing weird artifacts in
                     %image?--yes since averages frames together than we take
                     %decorrelation from the averaged frame
@@ -152,10 +152,11 @@ for DataFolderInd=1:NumberFilesToProcess
                 fprintf('Completing patch %d/%d \n', ind3,PatchesIntermediate)
             end
             %                         Full_stack_ReIm=[Patch_stack_Re{end:-1:1}]+Im1*[Patch_stack_Im{end:-1:1}];%[Full_stack_ReIm{end:-1:1}];%single(double(Patch_stack_Re(:,:,1:TimeRepsToUse,:))+sqrt(-1)*double(Patch_stack_Im(:,:,1:TimeRepsToUse,:)));
-            DimsDataFull_pixUsed=size(Full_stack_ReIm);
+            %%Patch_stack_Complex=Patch_stack_Complex(:,:,:,1:2:end);%Aug 16 try to load every other frame?
+%             DimsDataFull_pixUsed=size(Full_stack_ReIm);
         elseif Patching==1 || Patching==2
              %% 3) Loading given patch or full volume of Complex data & determining dimensions of data set
-            [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,PatchCount);
+            [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,PatchCount,tstart);
             fprintf('Keeping as separate complex data patches for memory efficiency.\n Completing patch %d/%d \n', PatchCount,numStacks)
             Patch_stack_Complex=single(fetchOutputs(F_SubStack_Re))+Im1*single(fetchOutputs(F_SubStack_Im));
             %Aug 14 2022 realized resizing maybe causing weird artifacts in
@@ -175,7 +176,7 @@ for DataFolderInd=1:NumberFilesToProcess
             %                                 F_SubStack_Im(ind3)=[];
             %                         end
         end
-        toc
+        toc(tstart)
         
              %% Remove glass here
         % Also add if ~exist(D3D) and if ~exist(glass exclusion mask) tumour
@@ -225,12 +226,12 @@ for DataFolderInd=1:NumberFilesToProcess
         
         %SubdivideProcessing=contains(BatchOfFolders(DataFolderInd),'9x9mm');
         if Patching==1 || Patching==2
-            D3DPatch{PatchCount}(:,:,:)=ComplexDecorrelationFaster7_Tall(Patch_stack_Complex,DimsDataPatch_pixUsed,iSNR_size_zVOIpix,TallorNot);%zeros(DimsData_pix(1),DimsData_pix(2),DimsData_pix(4));
+            D3DPatch{PatchCount}(:,:,:)=ComplexDecorrelationFaster7_Tall(Patch_stack_Complex,DimsDataPatch_pixUsed,iSNR_size_zVOIpix,TallorNot,tstart);%zeros(DimsData_pix(1),DimsData_pix(2),DimsData_pix(4));
 %             vessels_processed_binary{PatchCount}=single(zeros(size(D3D{PatchCount})));
 %             iSNRFramey{PatchCount}=single(zeros(size(D3D{PatchCount})));
             Dims=DimsDataFull_pixUsed;%(PatchCount,:);
         elseif Patching==0
-            D3D=ComplexDecorrelationFaster7_Tall(Patch_stack_Complex,DimsDataFull_pixUsed,iSNR_size_zVOIpix,TallorNot);%zeros(DimsData_pix(1),DimsData_pix(2),DimsData_pix(4));
+            D3D=ComplexDecorrelationFaster7_Tall(Patch_stack_Complex,DimsDataFull_pixUsed,iSNR_size_zVOIpix,TallorNot,tstart);%zeros(DimsData_pix(1),DimsData_pix(2),DimsData_pix(4));
             %vessels_processed_binary=single(zeros(size(D3D)));%
             Dims=DimsDataFull_pixUsed;
             %        elseif Patching==2
@@ -258,7 +259,7 @@ for DataFolderInd=1:NumberFilesToProcess
     
         clearvars F_SubStack_Re F_SubStack_Im
         fprintf('Patch %d/%d, complex differential variance evaluated.\n',PatchCount,numStacks)
-        toc
+        toc(tstart)
     end
         %% Progress on each patch at evaluating D3D
         %             updateWaitbar = @(~) waitbar(mean({Output.State} == "finished"),h);
@@ -280,16 +281,24 @@ for DataFolderInd=1:NumberFilesToProcess
             %D3D(:,(sum(DimsDataPatch_pixUsed(end:-1:ind3,2))-DimsDataPatch_pixUsed(ind3,2))+(1:DimsDataPatch_pixUsed(ind3,2)),:)=D3DPatch;
             D3D=MergePatches(D3DPatch);
             clearvars meanStructPatch NoiseFloorPatch D3DPatch
-            toc
+            toc(tstart)
         end
         %end
 
     %% saving raw OCTA results
     if Patching==1||Patching==2
         save(fullfile(FolderToCreateCheck,'D3DUnrotated.mat'),'D3D','-v7.3');
-        vessels_processed_binary=single(zeros(DimsDataFull_pix(1),DimsDataFull_pix(2),DimsDataFull_pix(4)));%initializing
+        %%save(fullfile(FolderToCreateCheck,'D3DUnrotatedSkipFrameY.mat'),'D3D','-v7.3');
+        if PerformSegmentation_0_No_1_Yes==1
+            vessels_processed_binary=single(zeros(DimsDataFull_pix(1),DimsDataFull_pix(2),DimsDataFull_pix(4)));%initializing
+        end
     elseif Patching==0
         save(fullfile(FolderToCreateCheck,'D3DUnrotated.mat'),'D3D','-v7.3');
+        if PerformSegmentation_0_No_1_Yes==1
+            vessels_processed_binary=single(zeros(DimsDataFull_pix(1),DimsDataFull_pix(2),DimsDataFull_pix(4)));
+            iSNRFramey=single(zeros(DimsDataFull_pix(1),DimsDataFull_pix(2),DimsDataFull_pix(4)));%iSNRFramey=zeros(DimsDataFull_pix(4),1);
+        end
+        %%save(fullfile(FolderToCreateCheck,'D3DUnrotatedSkipFrameY.mat'),'D3D','-v7.3');
     end
     
     %         for ind=1:xNumVOIs
@@ -325,7 +334,7 @@ for DataFolderInd=1:NumberFilesToProcess
     %                 fprintf('Creating Full Noise frame.\n')
     %                     BgrFrame=single(reshape(LinearData_Im,DimsDataPatchRaw_pix(1), DimsDataPatchRaw_pix(2)))+sqrt(-1)*;
     
-
+if PerformSegmentation_0_No_1_Yes==1
     %% 7) Executing ID-BISIM automatic thresholding algorithm
     %     delete(gcp('nocreate'))
     % tic
@@ -365,7 +374,7 @@ for DataFolderInd=1:NumberFilesToProcess
 %         end%[F_BISIMFramey(y),F_Alpha1_F(y),F_Alpha2_F(y),F_iSNRFramey(y),F_vessels_processed_binaryY(y)]
     end
     
-    toc
+    toc(tstart)
     %% retrieving data
     
     if Patching==1
@@ -391,7 +400,7 @@ for DataFolderInd=1:NumberFilesToProcess
             fprintf('******\nIn y=%d, Optimal alpha values: alpha1=%d and alpha2=%d\n******\n',indY,Alpha1_F(indY),Alpha2_F(indY));
         end
     end
-    toc
+    toc(tstart)
 
 %% 8) Saving binarization results
 %clearvars D3D_Patch
@@ -415,9 +424,8 @@ save(fullfile(FolderToCreateCheck,'vessels_processed_binary.mat'),'vessels_proce
 %clearvars vessels_processed_binary_Patch
 
 
-
-
-toc
+toc(tstart)
+end
 end
 % Computing difference between vectors for all alpha_t values
 

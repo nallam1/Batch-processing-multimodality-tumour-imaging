@@ -29,125 +29,191 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
     FileToCreateCheck=fullfile(FolderToCreateCheck,'IDBISIM_binarized_vessels.mat');%'st3D_uint16.mat');%Last file to create as part of batch processing
     if ~exist(FileToCreateCheck,'file')
         %% Determining matrix dimensions        
-            depth_image=500;
-                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'9x9mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick')) && ~exist(FileToCreateCheck,'file')%strfind(%sum(ismember(BatchOfFolders{DataFolderInd},'9x9m'))>=4%contains(BatchOfFolders{DataFolderInd},'9x9mm')
-        %             ProcessingCountofDataSet=ProcessingCountofDataSet+1;
-                    Widthx=400;
-                    BscansPerY=8;
-                    Lengthy=2400;
-                    DimsDataFull_um=[2170,9000,9000];
-        %             nrc_svOCT_9x9_pure_sv_fast_500June2021ForBatchproc_os_removal(BatchOfFolders{DataFolderInd},mouse,day_,Time,SVprocVersion,ProcessingCountofDataSet,OSremoval)%the idea is to only save structural data once
-                end
 
-                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'6x6mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick')) && ~exist(FileToCreateCheck,'file')%sum(ismember(BatchOfFolders{DataFolderInd},'6x6m'))>=4%contains(BatchOfFolders{DataFolderInd},'6x6m')
-                    ProcessingCountofDataSet=ProcessingCountofDataSet+1;
-                    Widthx=400;
-                    Lengthy=1600;
-                    BscansPerY=8;
-                    DimsDataFull_um=[2170,6000,6000];
+            %% Dimensions identified
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'mm'))
+                            temp1=strsplit(BatchOfFolders{DataFolderInd},'mm');%strsplit(BatchOfFolders{DataFolderInd},'mm svOCT');
+                            temp2=strsplit(temp1{1},'_');
+                            temp3=str2double(strsplit(temp2{end},'x'));
+                            %temp4=str2double(strsplit(temp3{end},'mm'));
+                                Widthmm=temp3(1);
+                                Lengthmm=temp3(2);
+                                DimsDataFull_um=[2170,Widthmm*1000,Lengthmm*1000];
+                        else
+                            Widthmm=0; % Do not add scale bars if cannot find dimensions from filename
+                            Lengthmm=0;
+                            DimsDataFull_um=[2170,0,0];
+                        end
+    %% Selecting appropriate processing parameters
+    %Setting 1 just a quick scan, low resolution, no patching 
+    %Setting 2 just a quick scan, high resolution, no patching
+    %Setting 3 just a quick scan, high resolution, no patching, larger FOV along y
+    %Setting 4 just a quick scan, high resolution, 2 patches (1 stitch)
+    %Setting 5 just a quick scan, high resolution, 3 patches (2 stitches)
+
+    depth_image=500;
+    
+    if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting1')) && ~isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& ~isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT'))
+        ProcessingCountofDataSet=ProcessingCountofDataSet+1;
+                WidthXpix=400;
+                LengthYpix=180;
+                BscansPerY=8;
+                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
+                        WidthXpix=200;
+                    end
+                    if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'90y'))
+                        LengthYpix=90;
+                    end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'QuarterY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'45y'))
+                            LengthYpix=45;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'1F')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'No repeat')) || contains(BatchOfFolders{DataFolderInd},'no repeat','IgnoreCase',true)
+                            BscansPerY=1;
+                        end
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'4F'))
-                                BscansPerY=4;
-                            end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'8F'))
-                                    BscansPerY=8;
-                                end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'16F'))
-                                    BscansPerY=16;
-                                end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
-                                    BscansPerY=24;
-                                end
-        %             nrc_svOCT_6x6_pure_sv_fast_500June2021ForBatchproc_os_removal(BatchOfFolders{DataFolderInd},mouse,day_,Time,SVprocVersion,ProcessingCountofDataSet,BscansPerY,OSremoval) %the idea is to only save structural data once
-                end
+                            BscansPerY=4;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'8F'))
+                            BscansPerY=8;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'16F'))
+                            BscansPerY=16;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
+                            BscansPerY=24;
+                        end
+    end
 
-                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'3x3mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick')) && ~exist(FileToCreateCheck,'file')%strfind(%sum(ismember(BatchOfFolders{DataFolderInd},'9x9m'))>=4%contains(BatchOfFolders{DataFolderInd},'9x9mm')
-                    ProcessingCountofDataSet=ProcessingCountofDataSet+1;
-                        Widthx=400;
-                        Lengthy=800;
-                        BscansPerY=8;
-                        DimsDataFull_um=[2170,3000,3000];
-                            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
-                                Widthx=200;
-                            end
-                            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'400y'))
-                                Lengthy=400;
-                            end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'QuarterY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200y'))
-                                    Lengthy=200;
-                                end
-                            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'4F'))
-                                BscansPerY=4;
-                            end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'8F'))
-                                    BscansPerY=8;
-                                end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'16F'))
-                                    BscansPerY=16;
-                                end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
-                                    BscansPerY=24;
-                                end
-        %             nrc_svOCT_3x3_pure_sv_fast_500June2021ForBatchproc_os_removal(BatchOfFolders{DataFolderInd},mouse,day_,Time,SVprocVersion,ProcessingCountofDataSet,Widthx,Lengthy,BscansPerY,OSremoval)%the idea is to only save structural data once
-                end
+    if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting2')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT')) && ~exist(FileToCreateCheck,'file')%strfind(%sum(ismember(BatchOfFolders{DataFolderInd},'9x9m'))>=4%contains(BatchOfFolders{DataFolderInd},'9x9mm')
+            ProcessingCountofDataSet=ProcessingCountofDataSet+1;
+                WidthXpix=400;
+                LengthYpix=800;
+                BscansPerY=8;
+                    if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
+                        WidthXpix=200;
+                    end
+                    if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'400y'))
+                        LengthYpix=400;
+                    end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'QuarterY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200y'))
+                            LengthYpix=200;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'1F')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'No repeat')) || contains(BatchOfFolders{DataFolderInd},'no repeat','IgnoreCase',true)
+                            BscansPerY=1;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'4F'))
+                            BscansPerY=4;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'8F'))
+                            BscansPerY=8;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'16F'))
+                            BscansPerY=16;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
+                            BscansPerY=24;
+                        end
+        end
+    
+        %if ~isempty(strfind(BatchOfFolders{DataFolderInd},'3x6mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'TumourDepth'))  
+    if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting3')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT')) && ~exist(FileToCreateCheck,'file')%strfind(%sum(ismember(BatchOfFolders{DataFolderInd},'9x9m'))>=4%contains(BatchOfFolders{DataFolderInd},'9x9mm')
+            ProcessingCountofDataSet=ProcessingCountofDataSet+1;
+                WidthXpix=400;
+                LengthYpix=1600;
+                BscansPerY=8;
 
-            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'3x6mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick')) && ~exist(FileToCreateCheck,'file')%strfind(%sum(ismember(BatchOfFolders{DataFolderInd},'9x9m'))>=4%contains(BatchOfFolders{DataFolderInd},'9x9mm')
-                    ProcessingCountofDataSet=ProcessingCountofDataSet+1;
-                        Widthx=400;
-                        Lengthy=1600;
-                        BscansPerY=8;
-                        DimsDataFull_um=[2170,3000,6000];
-                            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
-                                Widthx=200;
-                            end
-                            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'400y'))
-                                Lengthy=400;
-                            end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'QuarterY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200y'))
-                                    Lengthy=200;
-                                end
-                            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'4F'))
-                                BscansPerY=4;
-                            end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'8F'))
-                                    BscansPerY=8;
-                                end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'16F'))
-                                    BscansPerY=16;
-                                end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
-                                    BscansPerY=24;
-                                end
-        %             nrc_svOCT_3x6_pure_sv_fast_500June2021ForBatchproc_os_removal(BatchOfFolders{DataFolderInd},mouse,day_,Time,SVprocVersion,ProcessingCountofDataSet,Widthx,Lengthy,BscansPerY,OSremoval)%the idea is to only save structural data once
-                end    
-            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'4x4mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick')) && ~exist(FileToCreateCheck,'file')%strfind(%sum(ismember(BatchOfFolders{DataFolderInd},'9x9m'))>=4%contains(BatchOfFolders{DataFolderInd},'9x9mm')
-                    ProcessingCountofDataSet=ProcessingCountofDataSet+1;
-                        Widthx=400;
-                        Lengthy=800;
-                        BscansPerY=8;
-                        DimsDataFull_um=[2170,4000,4000];
-                            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
-                                Widthx=200;
-                            end
-                            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'400y'))
-                                Lengthy=400;
-                            end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'QuarterY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200y'))
-                                    Lengthy=200;
-                                end
-                            if ~isempty(strfind(BatchOfFolders{DataFolderInd},'4F'))
-                                BscansPerY=4;
-                            end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'8F'))
-                                    BscansPerY=8;
-                                end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'16F'))
-                                    BscansPerY=16;
-                                end
-                                if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
-                                    BscansPerY=24;
-                                end
-        %             nrc_svOCT_4x4_pure_sv_fast_500June2021ForBatchproc_os_removal(BatchOfFolders{DataFolderInd},mouse,day_,Time,SVprocVersion,ProcessingCountofDataSet,Widthx,Lengthy,BscansPerY,OSremoval)%the idea is to only save structural data once
-            end    
+                    if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
+                        WidthXpix=200;
+                    end
+                    if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'800y'))
+                        LengthYpix=800;
+                    end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'QuarterY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'400y'))
+                            LengthYpix=400;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'1F')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'No repeat')) || contains(BatchOfFolders{DataFolderInd},'no repeat','IgnoreCase',true)
+                            BscansPerY=1;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'4F'))
+                            BscansPerY=4;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'8F'))
+                            BscansPerY=8;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'16F'))
+                            BscansPerY=16;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
+                            BscansPerY=24;
+                        end
+                    end    
+
+        %~isempty(strfind(BatchOfFolders{DataFolderInd},'6x6mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'TumourDepth'))
+        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting4')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT')) && ~exist(FileToCreateCheck,'file')%sum(ismember(BatchOfFolders{DataFolderInd},'6x6m'))>=4%contains(BatchOfFolders{DataFolderInd},'6x6m')
+            ProcessingCountofDataSet=ProcessingCountofDataSet+1;
+
+                WidthXpix=800;
+                LengthYpix=1600;
+                BscansPerY=8;     
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'400x'))
+                            WidthXpix=400;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'800y'))
+                            LengthYpix=800;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'DoubleY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'3200y'))
+                            LengthYpix=3200;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'1F')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'No repeat')) || contains(BatchOfFolders{DataFolderInd},'no repeat','IgnoreCase',true)
+                            BscansPerY=1; %Could also str2num...
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'4F'))
+                            BscansPerY=4;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'8F'))
+                            BscansPerY=8;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'16F'))
+                            BscansPerY=16;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
+                            BscansPerY=24;
+                        end
+            
+            nrc_svOCT_set4_pure_sv_fast_500Sept2022ForBatchproc_os_FullVOl(saveRealImagMergedData,BatchOfFolders{DataFolderInd},mouse,day_,Time,SVprocVersion,ProcessingCountofDataSet,WidthXpix,LengthYpix,Widthxmm,Lengthymm,BscansPerY,OSremoval) %the idea is to only save structural data once
+        end
+        
+                %~isempty(strfind(BatchOfFolders{DataFolderInd},'9x9mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'TumourDepth')) 
+        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting5')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT')) && ~exist(FileToCreateCheck,'file')%strfind(%sum(ismember(BatchOfFolders{DataFolderInd},'9x9m'))>=4%contains(BatchOfFolders{DataFolderInd},'9x9mm')
+            ProcessingCountofDataSet=ProcessingCountofDataSet+1;
+                WidthXpix=400;
+                LengthYpix=2400;
+                BscansPerY=8;
+                    if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
+                        WidthXpix=200;
+                    end
+                    if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'1200y'))
+                        LengthYpix=1200;
+                    end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'QuarterY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'600y'))
+                            LengthYpix=600;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'1F')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'No repeat')) || contains(BatchOfFolders{DataFolderInd},'no repeat','IgnoreCase',true)
+                            BscansPerY=1;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'4F'))
+                            BscansPerY=4;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'8F'))
+                            BscansPerY=8;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'16F'))
+                            BscansPerY=16;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
+                            BscansPerY=24;
+                        end
+        end
         %% Opening raw data files           
                 folderr=BatchOfFolders{DataFolderInd};%[BatchOfFolders{DataFolderInd}, '\'];
                 foldersave=folderr;%('D:\M60s\M61\Apr12\');
@@ -174,10 +240,10 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
 %% Info full 3D matrix
         Stitches=length(files2)-2;%length(LinearData_Re)-1;
         Patches=length(files2)-1;
-        WidthVolFull=Widthx*(Stitches+1)-12*Stitches-12*(Stitches);
-        DimsDataFull_pix=[depth_image,WidthVolFull,BscansPerY,Lengthy];
-        DimsDataPatchRaw_pix=[depth_image,Widthx,BscansPerY,Lengthy];
-            tabulatedDims_pix=table(depth_image,WidthVolFull,BscansPerY,Lengthy);
+        WidthVolFull=WidthXpix*(Stitches+1)-12*Stitches-12*(Stitches);%cuts from right of patch and from left respectively
+        DimsDataFull_pix=[depth_image,WidthVolFull,BscansPerY,LengthYpix];
+        DimsDataPatchRaw_pix=[depth_image,WidthXpix,BscansPerY,LengthYpix];
+            tabulatedDims_pix=table(depth_image,WidthVolFull,BscansPerY,LengthYpix);
             tabulatedDims_um=table(DimsDataFull_um(1),DimsDataFull_um(2),DimsDataFull_um(3),'VariableNames',{'Depth_um','Widthx_um','Lengthy_um'});
             save(fullfile(FolderToCreateCheck,'DimensionsOfVolData_pix.mat'),'tabulatedDims_pix','-v7.3');
             save(fullfile(FolderToCreateCheck,'DimensionsOfVolData_um.mat'),'tabulatedDims_um','-v7.3');
