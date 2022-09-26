@@ -51,7 +51,7 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
     %Setting 4 just a quick scan, high resolution, 2 patches (1 stitch)
     %Setting 5 just a quick scan, high resolution, 3 patches (2 stitches)
 
-    depth_image=500;
+%     depth_image=500;
     
     if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting1')) && ~isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& ~isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT'))
         ProcessingCountofDataSet=ProcessingCountofDataSet+1;
@@ -81,6 +81,15 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         end
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
                             BscansPerY=24;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
+                            depth_image=300;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||SVprocVersion==3
+                            depth_image=400;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))
+                            depth_image=500;
                         end
     end
 
@@ -112,6 +121,15 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         end
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
                             BscansPerY=24;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
+                            depth_image=300;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||SVprocVersion==3
+                            depth_image=400;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))
+                            depth_image=500;
                         end
         end
     
@@ -146,6 +164,15 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
                             BscansPerY=24;
                         end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
+                            depth_image=300;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||SVprocVersion==3
+                            depth_image=400;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))
+                            depth_image=500;
+                        end
                     end    
 
         %~isempty(strfind(BatchOfFolders{DataFolderInd},'6x6mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'TumourDepth'))
@@ -179,8 +206,17 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
                             BscansPerY=24;
                         end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
+                            depth_image=300;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||SVprocVersion==3
+                            depth_image=400;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))
+                            depth_image=500;
+                        end
             
-            nrc_svOCT_set4_pure_sv_fast_500Sept2022ForBatchproc_os_FullVOl(saveRealImagMergedData,BatchOfFolders{DataFolderInd},mouse,day_,Time,SVprocVersion,ProcessingCountofDataSet,WidthXpix,LengthYpix,Widthxmm,Lengthymm,BscansPerY,OSremoval) %the idea is to only save structural data once
+%             nrc_svOCT_set4_pure_sv_fast_500Sept2022ForBatchproc_os_FullVOl(saveRealImagMergedData,BatchOfFolders{DataFolderInd},mouse,day_,Time,SVprocVersion,ProcessingCountofDataSet,WidthXpix,LengthYpix,Widthxmm,Lengthymm,BscansPerY,OSremoval) %the idea is to only save structural data once
         end
         
                 %~isempty(strfind(BatchOfFolders{DataFolderInd},'9x9mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'TumourDepth')) 
@@ -213,6 +249,15 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
                             BscansPerY=24;
                         end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
+                            depth_image=300;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||SVprocVersion==3
+                            depth_image=400;
+                        end
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))
+                            depth_image=500;
+                        end
         end
         %% Opening raw data files           
                 folderr=BatchOfFolders{DataFolderInd};%[BatchOfFolders{DataFolderInd}, '\'];
@@ -236,7 +281,7 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
         % if isempty(Lengthy)
         % Lengthy=800;
         % end
-        depth_image=500;
+%         depth_image=500;
 %% Info full 3D matrix
         Stitches=length(files2)-2;%length(LinearData_Re)-1;
         Patches=length(files2)-1;
