@@ -58,6 +58,7 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                 WidthXpix=400;
                 LengthYpix=180;
                 BscansPerY=8;
+                depth_image=500;
                 if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
                         WidthXpix=200;
                     end
@@ -98,6 +99,7 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                 WidthXpix=400;
                 LengthYpix=800;
                 BscansPerY=8;
+                depth_image=500;
                     if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
                         WidthXpix=200;
                     end
@@ -139,7 +141,7 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                 WidthXpix=400;
                 LengthYpix=1600;
                 BscansPerY=8;
-
+                depth_image=500;
                     if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
                         WidthXpix=200;
                     end
@@ -179,11 +181,12 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting4')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT')) && ~exist(FileToCreateCheck,'file')%sum(ismember(BatchOfFolders{DataFolderInd},'6x6m'))>=4%contains(BatchOfFolders{DataFolderInd},'6x6m')
             ProcessingCountofDataSet=ProcessingCountofDataSet+1;
 
-                WidthXpix=800;
+                WidthXpix=400;%width per patch
                 LengthYpix=1600;
-                BscansPerY=8;     
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'400x'))
-                            WidthXpix=400;
+                BscansPerY=8;
+                depth_image=500;
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
+                            WidthXpix=200;
                         end
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfY')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'800y'))
                             LengthYpix=800;
@@ -225,6 +228,7 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                 WidthXpix=400;
                 LengthYpix=2400;
                 BscansPerY=8;
+                depth_image=500;
                     if ~isempty(strfind(BatchOfFolders{DataFolderInd},'HalfX')) || ~isempty(strfind(BatchOfFolders{DataFolderInd},'200x'))
                         WidthXpix=200;
                     end
