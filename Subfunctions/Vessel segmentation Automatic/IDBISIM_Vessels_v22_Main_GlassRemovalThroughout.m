@@ -81,7 +81,7 @@ RangeOfAlhaThreshFunc=RangeOfAlhaThreshFunc(1,90);
 [NumberFilesToProcess,BatchOfFolders]=BatchSelection(RawDataDirectory,Directories,Mice,Timepoints,ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3,MatlabVer);
 for DataFolderInd=1:NumberFilesToProcess
     %% 2) Determining number of patches
-    [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,numStacks,files1,files2, files1Cont,files2Cont, FolderToCreateCheck,mouse,day_,Time]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd);
+    [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,numStacks,folder1,folder2, files1Cont,files2Cont, FolderToCreateCheck,mouse,day_]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd);
     if PerformSegmentation_0_No_1_Yes==1
         fprintf('CDV and ID-BISIM processing starting for %s.\n ',FolderToCreateCheck) 
     else
@@ -140,7 +140,7 @@ for DataFolderInd=1:NumberFilesToProcess
         fprintf('Creating the %d patches of complex data matrices.\n',numStacks)
         if Patching==0
              %% 3) Loading given patch or full volume of Complex data & determining dimensions of data set
-            [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,[],tstart);%Ignore patchcount since load all
+            [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,folder1,folder2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,[],tstart);%Ignore patchcount since load all
              %[F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime5_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse);
             fprintf('Stitching together complex data')
             Patch_stack_Complex=single(zeros(DimsDataFull_pixUsed));
@@ -161,7 +161,7 @@ for DataFolderInd=1:NumberFilesToProcess
 %             DimsDataFull_pixUsed=size(Full_stack_ReIm);
         elseif Patching==1 || Patching==2
              %% 3) Loading given patch or full volume of Complex data & determining dimensions of data set
-            [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,PatchCount,tstart);
+            [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,folder1,folder2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,PatchCount,tstart);
             fprintf('Keeping as separate complex data patches for memory efficiency.\n Completing patch %d/%d \n', PatchCount,numStacks)
             Patch_stack_Complex=single(fetchOutputs(F_SubStack_Re))+Im1*single(fetchOutputs(F_SubStack_Im));
             %Aug 14 2022 realized resizing maybe causing weird artifacts in
