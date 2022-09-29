@@ -19,7 +19,7 @@ addpath(genpath(ProcScriptDirectory))
 addpath(genpath('D:\'))
 
 %Raw data file select style
-RawDataDirectory='F:\SBRT project March-June 2021'%'H:\March-June 2022 experiments'%'G:\PDXovo';%'G:\SBRT project March-June 2021'
+RawDataDirectory='H:\March-June 2022 experiments'%'F:\SBRT project March-June 2021''G:\PDXovo';%'G:\SBRT project March-June 2021'
 cd(RawDataDirectory)
 addpath(genpath(RawDataDirectory))
 ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3=1;
@@ -27,8 +27,8 @@ MatlabVer=2020;%version of Matlab being used %only matters if the year is before
 PerformSegmentation_0_No_1_Yes=0;%added temporarily Aug 16 2022, as a means for testing without glass-removal code being fully implemented, and noise floor measured for ID-BISIM algorithm--maybe take noise floor as a few pixels above bottom since bottom sometimes has weird artifacts (based on what was seen while performing attenuation coefficient distribution computations).
 
 if ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3==1
-    Mice={'L0R4'}%{'0322H3M2';'0322H3M3'}%{'L0R4'}%{'L0R1';'L0R2';'L0R3';'L0R4';'L1R1';'L1R2';'L1R3';'L2R2';'L2R4';'BS1';'BS2';'BS3'};%{'PDXovo-786B';'PDXovo-786C'};%%{'L2R2';'L2R4'};%{'L1R1';'L1R3'};
-    Timepoints={'Apr 9 2021'}%{'Jun 6 2022';'Jun 15 2022';'Jul 26 2022';'Jul 29 2022';'Aug 5 2022'}%{'Apr 9 2021'}%{'Apr 9 2021';'Apr 16 2021';'Apr 23 2021';'Apr 13 2021'};%'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021';'Apr 24 2021';'Apr 26 2021';'Apr 28 2021'}%{'Apr 22 2021';}%{'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021'};%{'Apr 5 2021';'Apr 7 2021';'Apr 9 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 16 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021'};
+    Mice={'0322H3M1';'0322H3M2';'0322H3M3'};%'BS1'}%{'L0R4'}%{'0322H3M2';'0322H3M3'}%{'L0R4'}%{'L0R1';'L0R2';'L0R3';'L0R4';'L1R1';'L1R2';'L1R3';'L2R2';'L2R4';'BS1';'BS2';'BS3'};%{'PDXovo-786B';'PDXovo-786C'};%%{'L2R2';'L2R4'};%{'L1R1';'L1R3'};
+    Timepoints={'Jun 20 2022';'Aug 8 2022';'Aug 15 2022';'Aug 22 2022'}%{'Jun 6 2022';'Jun 15 2022';'Jul 26 2022';'Jul 29 2022';'Aug 5 2022'}%{'Apr 9 2021'}%{'Apr 9 2021';'Apr 16 2021';'Apr 23 2021';'Apr 13 2021'};%'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021';'Apr 24 2021';'Apr 26 2021';'Apr 28 2021'}%{'Apr 22 2021';}%{'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021'};%{'Apr 5 2021';'Apr 7 2021';'Apr 9 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 16 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021'};
     %{'Apr 27 2021'};%
     Directories=[];
     %NumFiles_max=NumMice*NumTime;%may not all have all timepoints
@@ -81,7 +81,12 @@ RangeOfAlhaThreshFunc=RangeOfAlhaThreshFunc(1,90);
 [NumberFilesToProcess,BatchOfFolders]=BatchSelection(RawDataDirectory,Directories,Mice,Timepoints,ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3,MatlabVer);
 for DataFolderInd=1:NumberFilesToProcess
     %% 2) Determining number of patches
-    [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,numStacks,files1,files2, files1Cont,files2Cont, FolderToCreateCheck]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd);
+    [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,numStacks,files1,files2, files1Cont,files2Cont, FolderToCreateCheck,mouse,day_,Time]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd);
+    if PerformSegmentation_0_No_1_Yes==1
+        fprintf('CDV and ID-BISIM processing starting for %s.\n ',FolderToCreateCheck) 
+    else
+        fprintf('CDV processing starting for %s.\n ',FolderToCreateCheck)
+    end
     mem=memory
     memLim=mem.MemAvailableAllArrays-5e9;
     if ((contains(BatchOfFolders{DataFolderInd},'9x9mm') && TimeRepsPerYstepToUse>4)) || (prod([DimsDataFull_pix(1),DimsDataFull_pix(2),TimeRepsPerYstepToUse,DimsDataFull_pix(4)]))> memLim && Patching~=1  %prod([DimsDataFull_pix(1),DimsDataFull_pix(2),TimeRepsPerYstepToUse,DimsDataFull_pix(4)])>prod([500,1152,2,2400])))
@@ -287,6 +292,7 @@ for DataFolderInd=1:NumberFilesToProcess
 
     %% saving raw OCTA results
     if Patching==1||Patching==2
+        disp(['Saving the CDV raw data to ' FolderToCreateCheck ' folder']);
         save(fullfile(FolderToCreateCheck,'D3DUnrotated.mat'),'D3D','-v7.3');
         %%save(fullfile(FolderToCreateCheck,'D3DUnrotatedSkipFrameY.mat'),'D3D','-v7.3');
         if PerformSegmentation_0_No_1_Yes==1
@@ -300,7 +306,32 @@ for DataFolderInd=1:NumberFilesToProcess
         end
         %%save(fullfile(FolderToCreateCheck,'D3DUnrotatedSkipFrameY.mat'),'D3D','-v7.3');
     end
-    
+            %% Visualization
+        disp(['Saving visualization of the CDV raw data to ' FolderToCreateCheck ' folder']);
+        width_x=linspace(0,DimsDataFull_um(2)/1000,DimsDataFull_pix(2));% ,9,2400 should have been 9,1200
+        width_y=linspace(0,DimsDataFull_um(3)/1000,DimsDataFull_pix(4));% ,9,2400
+
+            projection=(flipud(imrotate(squeeze(sum(cast(D3D,'double'),1)),-90)));
+            %(flipud(imrotate(squeeze(sum(ass(80:220,:,:),1)),-90)));
+            set(figure,'Position',[100,100,800,600],'visible','off');
+            fs=70;  
+            % imagesc(width_x,width_y,sqrt(projection),[100 750])%,[0.55*10^6 6.2*10^6])%,[600 1900]); 
+            imagesc(width_x,width_y,projection)%,[0.00*10^5 2.0*10^5])%,[600 1900]); 
+            colormap 'hot'; 
+            
+            
+            title(['nrcOCT CDV AIP_' mouse '__' day_ ],'FontWeight','Bold','FontSize',fs);
+            
+            xlabel('Width_x (mm)','FontWeight','Bold','FontSize',fs);
+            ylabel('Width_y (mm)','FontWeight','Bold','FontSize',fs);
+            axis tight; set(gca,'FontWeight','Bold','FontSize',fs-1);
+            hcb1=colorbar; 
+            set(hcb1,'FontSize',fs-40,'LineWidth',1,'TickLength',0.01);
+            set(gcf,'PaperUnits','inches','PaperPosition',[0 0 26 24])
+            saveas(gcf, [FolderToCreateCheck 'CDV' TimeRepsPerYstepToUse ' AIP_' mouse '_' day_ '.png'], 'png');
+            
+            toc(tstart)%disp(['time: ' num2str(toc/60) ' min']);
+
     %         for ind=1:xNumVOIs
     %             for ind=1:yNumVOIs
     %% 6) iSNR computation in sliding window and optimization of SNR adaptive threshold

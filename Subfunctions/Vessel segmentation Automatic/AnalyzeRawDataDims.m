@@ -1,4 +1,4 @@
-function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,folder2, files1Cont,files2Cont, FolderToCreateCheck]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd)
+function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,folder2, files1Cont,files2Cont, FolderToCreateCheck, mouse,day_,Time]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd)
 %% by Nader A.
 %% Load data into 4D complex spatio-temporal data stacks and extract dimensions
 %for DataFolderInd=1:NumberFilesToProcess%(length(BatchOfFolders)-1)%skip last that has no data
