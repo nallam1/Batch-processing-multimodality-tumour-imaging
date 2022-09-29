@@ -1,4 +1,4 @@
-function [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,folder1,folder2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix,TimeRepsToUse,Patching,PatchCount)
+function [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,folder1,folder2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix,TimeRepsToUse,Patching,PatchCount,tstart)
 %%by Nader A.
 % Patching 0 --Loads single large volume all at once
 % Patching 1 --Loads split volume (patch) once per for loop
@@ -49,7 +49,7 @@ if Patching==0
             end%SubStack_Re{ind1}=
             memory
         end
-        
+    toc(tstart)    
     DimsDataFull_pixUsed=[DimsDataFull_pix(1),DimsDataFull_pix(2),TimeRepsToUse,DimsDataFull_pix(4)];
     DimsDataPatch_pixUsed=repmat(DimsDataFull_pixUsed,numStacksConsidered,1);%To initialize%zeros(numStacks,4);  
       %WidthsPatchesForStitching=zeros(numStacks,1);  
@@ -73,17 +73,20 @@ elseif Patching==1 || Patching==2
         %SubStack_Re{1:numStacks}=parallel.FevalFuture;
         %{zeros(depth_image, Widthx, BscansPerY, Lengthy)};
         memory
+        toc(tstart)
         for ind1=1:length(files1Cont) %join files1Cont with files2Cont and make single 'for' loop for speed?
             if ~contains(files1Cont{ind1},'bg') && ind1==PatchCount
                 Gfilename1=fullfile(folder1,files1Cont{ind1});%([folder1 'b0_ch1.dat']); % 1st quadrature
                 fprintf('Loading Real data, patch %d/%d \n', ind1,numStacksPossible);%disp(['Loading Real data, file ', ind]);                 
                 F_SubStack_Re=parfeval(@LoadAndStitchInParallel,1,ind1,Gfilename1,depth_image, Widthx, BscansPerY, Lengthy,TimeRepsToUse,numStacksPossible);
+                toc(tstart)
             end
 %             memory
             if ~contains(files2Cont{ind1},'bg') && ind1==PatchCount
                 Gfilename2=fullfile(folder2,files2Cont{ind1});%([folder1 'b0_ch1.dat']); % 1st quadrature
                 fprintf('Loading Imaginary data, patch %d/%d \n', ind1,numStacksPossible)%                 disp(['Loading Imaginary data, file ', ind]); 
                 F_SubStack_Im=parfeval(@LoadAndStitchInParallel,1,ind1,Gfilename2,depth_image, Widthx, BscansPerY, Lengthy,TimeRepsToUse,numStacksPossible);
+                toc(tstart)
             end%SubStack_Re{ind1}=
 %             memory
         end

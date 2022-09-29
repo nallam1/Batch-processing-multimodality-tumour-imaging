@@ -1,4 +1,4 @@
-function D3D=ComplexDecorrelationFaster7_Tall(ReImStack,DimsDataPatch_pix,zVOI_pix,TallorNot)%Re_VOI,Im_VOI,M,T)
+function D3D=ComplexDecorrelationFaster7_Tall(ReImStack,DimsDataPatch_pix,zVOI_pix,TallorNot,tstart)%Re_VOI,Im_VOI,M,T)
 %% by Nader A.
 %% Compute complex decorrelation of given ROI
 % Re_VOI: Real Spatiotemporal 4D data   
@@ -22,6 +22,7 @@ prod_t1_t2=squeeze(zeros(size(ReImStack_Repli,1),DimsDataPatch_pix(2),DimsDataPa
 prod_sum_t1_t1__t2_t2=squeeze(zeros(size(ReImStack_Repli,1),DimsDataPatch_pix(2),DimsDataPatch_pix(3)-1,DimsDataPatch_pix(4)));%squeeze(single(zeros(gather(size(ReImStack_Repli,1)),DimsDataPatch_pix(2),DimsDataPatch_pix(3)-1,DimsDataPatch_pix(4))));%tall();
 fprintf('First intermediate steps stored in memory for speed...\n');
 Im1=sqrt(-1);
+toc(tstart)
 if DimsDataPatch_pix(3)==2
     prod_t1_t2(:,:,:)=squeeze(ReImStack_Repli(:,:,1,:).*conj(ReImStack_Repli(:,:,2,:)));%squeeze(a.*c+b.*d-Im1*double(a.*d+b.*c));Should be -a*d +b*c %squeeze(ReStack_Repli(:,:,1,:).*ImStack_Repli(:,:,2,:));
     prod_sum_t1_t1__t2_t2(:,:,:)=squeeze(ReImStack_Repli(:,:,1,:).*conj(ReImStack_Repli(:,:,1,:))+ReImStack_Repli(:,:,2,:).*conj(ReImStack_Repli(:,:,2,:)));%squeeze(abs(a+Im1*double(b)).^2+abs(c+Im1*double(d)).^2);%squeeze(ReStack_Repli(:,:,1,:).*ImStack_Repli(:,:,1,:)+ReStack_Repli(:,:,2,:).*ImStack_Repli(:,:,2,:));
@@ -30,7 +31,7 @@ if DimsDataPatch_pix(3)==2
     
     for z=1:DimsDataPatch_pix(1)%parfor z=1:DimsDataPatch_pix(1)%size(ReStack,1)%y=1:size(Re_VOI,4) %sending large data to each worker?
         fprintf('D3D at Depth... %d of %d\n',z,DimsDataPatch_pix(1));
-
+        
         D3D(z,:,:)=squeeze(sqrt(1-(abs(sum(prod_t1_t2(z:(z-1+zVOI_pix),:,:),1)))./(0.5*sum(prod_sum_t1_t1__t2_t2(z:(z-1+zVOI_pix),:,:),1))));%);%sqrt(1-(squeeze(sum(squeeze(abs(sum(prod_t1_t2(z:(z-1+zVOI_pix),:,:,:),1))),2))./squeeze(sum(squeeze(0.5*sum(prod_sum_t1_t1__t2_t2(z:(z-1+zVOI_pix),:,:,:),1)),2))));
     end%gather(
     %tocBytes(gcp)
@@ -40,6 +41,7 @@ if DimsDataPatch_pix(3)==2
 
 else
     for t=1:(DimsDataPatch_pix(3)-1)
+    toc(tstart)
     %     a=ReStack_Repli(:,:,1,:);
     %     b=ImStack_Repli(:,:,1,:);
     %     c=ReStack_Repli(:,:,2,:);
@@ -57,6 +59,7 @@ clearvars ReImStack_Repli ReStack_Repli ImStack_Repli
 %ticBytes(gcp)
  %parfor--too slow since lots of overhead from sending large dataset to all
  %workers
+ toc(tstart)
 for z=1:DimsDataPatch_pix(1)%parfor z=1:DimsDataPatch_pix(1)%size(ReStack,1)%y=1:size(Re_VOI,4) %sending large data to each worker?
 fprintf('D3D at Depth... %d of %d\n',z,DimsDataPatch_pix(1));
 
@@ -64,8 +67,9 @@ D3D(z,:,:)=squeeze(sqrt(1-(sum(abs(sum(prod_t1_t2(z:(z-1+zVOI_pix),:,:,:),1)),3)
 end%gather(
 %tocBytes(gcp)
 %toc
-toc
-disp([toc])
+%toc
+% disp([toc])
+toc(tstart)
 end
 if TallorNot==1
 D3D=tall(D3D);

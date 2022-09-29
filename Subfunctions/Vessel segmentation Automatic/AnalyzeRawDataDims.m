@@ -212,7 +212,7 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
                             depth_image=300;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||SVprocVersion==3
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))
                             depth_image=400;
                         end
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))

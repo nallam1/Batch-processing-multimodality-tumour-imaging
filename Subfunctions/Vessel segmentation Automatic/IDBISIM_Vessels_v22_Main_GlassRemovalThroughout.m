@@ -16,7 +16,7 @@ tstart=tic %Defined to be able to keep track of time elapsed across functions
 ProcScriptDirectory='D:\git\BatchProcessOptical_OCT-BRI-FLU'%'D:\Processing code\OCT\1) SvOCT processing\Codes_for_Ottawa\Main for bulk processing-Nader'
 
 addpath(genpath(ProcScriptDirectory))
-addpath(genpath('D:\'))
+% addpath(genpath('D:\'))--will look at other branches of my git otherwise
 
 %Raw data file select style
 RawDataDirectory='H:\March-June 2022 experiments'%'F:\SBRT project March-June 2021''G:\PDXovo';%'G:\SBRT project March-June 2021'
