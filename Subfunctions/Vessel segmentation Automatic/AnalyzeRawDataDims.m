@@ -1,4 +1,4 @@
-function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,folder2, files1Cont,files2Cont, FolderToCreateCheck, mouse,day_]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd)
+function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,folder2, files1Cont,files2Cont, FolderToCreateCheck, mouse,day_]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd,TimeRepsPerYstepToUse,PerformSegmentation_0_No_1_Yes)
 %% by Nader A.
 %% Load data into 4D complex spatio-temporal data stacks and extract dimensions
 %for DataFolderInd=1:NumberFilesToProcess%(length(BatchOfFolders)-1)%skip last that has no data
@@ -26,7 +26,11 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
     if ~exist(FolderToCreateCheck,'dir')
         mkdir(FolderToCreateCheck);
     end
-    FileToCreateCheck=fullfile(FolderToCreateCheck,'IDBISIM_binarized_vessels.mat');%'st3D_uint16.mat');%Last file to create as part of batch processing
+    if PerformSegmentation_0_No_1_Yes==0
+        FileToCreateCheck=fullfile(FolderToCreateCheck, ['CDV' char(int2str(TimeRepsPerYstepToUse)) ' AIP_' mouse '_' day_ '.png']);%StepAtWhichToStop=%'IDBISIM_binarized_vessels.mat');%'st3D_uint16.mat');%Last file to create as part of batch processing
+    elseif PerformSegmentation_0_No_1_Yes==1
+        FileToCreateCheck=fullfile(FolderToCreateCheck,'IDBISIM_binarized_vessels.mat');%'st3D_uint16.mat');%Last file to create as part of batch processing
+    end
     if ~exist(FileToCreateCheck,'file')
         %% Determining matrix dimensions        
 
@@ -52,9 +56,10 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
     %Setting 5 just a quick scan, high resolution, 3 patches (2 stitches)
 
 %     depth_image=500;
-    
+    ToProcess=0;
     if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting1')) && ~isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& ~isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT'))
         ProcessingCountofDataSet=ProcessingCountofDataSet+1;
+        ToProcess=1;
                 WidthXpix=400;
                 LengthYpix=180;
                 BscansPerY=8;
@@ -83,19 +88,20 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
                             BscansPerY=24;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'300depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'300deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep300'))
                             depth_image=300;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||SVprocVersion==3
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'400depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'400deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep400'))
                             depth_image=400;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'500depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'500deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep500'))
                             depth_image=500;
                         end
     end
 
     if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting2')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT')) && ~exist(FileToCreateCheck,'file')%strfind(%sum(ismember(BatchOfFolders{DataFolderInd},'9x9m'))>=4%contains(BatchOfFolders{DataFolderInd},'9x9mm')
             ProcessingCountofDataSet=ProcessingCountofDataSet+1;
+            ToProcess=1;
                 WidthXpix=400;
                 LengthYpix=800;
                 BscansPerY=8;
@@ -124,13 +130,13 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
                             BscansPerY=24;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'300depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'300deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep300'))
                             depth_image=300;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||SVprocVersion==3
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'400depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'400deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep400'))
                             depth_image=400;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'500depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'500deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep500'))
                             depth_image=500;
                         end
         end
@@ -138,6 +144,7 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
         %if ~isempty(strfind(BatchOfFolders{DataFolderInd},'3x6mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'TumourDepth'))  
     if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting3')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT')) && ~exist(FileToCreateCheck,'file')%strfind(%sum(ismember(BatchOfFolders{DataFolderInd},'9x9m'))>=4%contains(BatchOfFolders{DataFolderInd},'9x9mm')
             ProcessingCountofDataSet=ProcessingCountofDataSet+1;
+            ToProcess=1;
                 WidthXpix=400;
                 LengthYpix=1600;
                 BscansPerY=8;
@@ -166,13 +173,13 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
                             BscansPerY=24;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'300depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'300deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep300'))
                             depth_image=300;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||SVprocVersion==3
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'400depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'400deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep400'))
                             depth_image=400;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'500depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'500deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep500'))
                             depth_image=500;
                         end
                     end    
@@ -180,7 +187,7 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
         %~isempty(strfind(BatchOfFolders{DataFolderInd},'6x6mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'TumourDepth'))
         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting4')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT')) && ~exist(FileToCreateCheck,'file')%sum(ismember(BatchOfFolders{DataFolderInd},'6x6m'))>=4%contains(BatchOfFolders{DataFolderInd},'6x6m')
             ProcessingCountofDataSet=ProcessingCountofDataSet+1;
-
+            ToProcess=1;
                 WidthXpix=400;%width per patch
                 LengthYpix=1600;
                 BscansPerY=8;
@@ -209,22 +216,22 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
                             BscansPerY=24;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'300depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'300deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep300'))
                             depth_image=300;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'400depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'400deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep400'))
                             depth_image=400;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'500depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'500deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep500'))
                             depth_image=500;
                         end
-            
 %             nrc_svOCT_set4_pure_sv_fast_500Sept2022ForBatchproc_os_FullVOl(saveRealImagMergedData,BatchOfFolders{DataFolderInd},mouse,day_,Time,SVprocVersion,ProcessingCountofDataSet,WidthXpix,LengthYpix,Widthxmm,Lengthymm,BscansPerY,OSremoval) %the idea is to only save structural data once
         end
         
                 %~isempty(strfind(BatchOfFolders{DataFolderInd},'9x9mm')) && isempty(strfind(BatchOfFolders{DataFolderInd},'TumourDepth')) 
         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'setting5')) && isempty(strfind(BatchOfFolders{DataFolderInd},'Quick'))&& isempty(strfind(BatchOfFolders{DataFolderInd},'svOCT')) && ~exist(FileToCreateCheck,'file')%strfind(%sum(ismember(BatchOfFolders{DataFolderInd},'9x9m'))>=4%contains(BatchOfFolders{DataFolderInd},'9x9mm')
             ProcessingCountofDataSet=ProcessingCountofDataSet+1;
+            ToProcess=1;
                 WidthXpix=400;
                 LengthYpix=2400;
                 BscansPerY=8;
@@ -253,16 +260,17 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
                         if ~isempty(strfind(BatchOfFolders{DataFolderInd},'24F'))
                             BscansPerY=24;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth300'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'300depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'300deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep300'))
                             depth_image=300;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||SVprocVersion==3
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth400'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'400depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'400deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep400'))
                             depth_image=400;
                         end
-                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))
+                        if ~isempty(strfind(BatchOfFolders{DataFolderInd},'depth500'))||~isempty(strfind(BatchOfFolders{DataFolderInd},'500depth'))|| ~isempty(strfind(BatchOfFolders{DataFolderInd},'500deep')) ||~isempty(strfind(BatchOfFolders{DataFolderInd},'deep500'))
                             depth_image=500;
                         end
         end
+if ToProcess==1
         %% Opening raw data files           
                 folderr=BatchOfFolders{DataFolderInd};%[BatchOfFolders{DataFolderInd}, '\'];
                 foldersave=folderr;%('D:\M60s\M61\Apr12\');
@@ -296,6 +304,17 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
             tabulatedDims_um=table(DimsDataFull_um(1),DimsDataFull_um(2),DimsDataFull_um(3),'VariableNames',{'Depth_um','Widthx_um','Lengthy_um'});
             save(fullfile(FolderToCreateCheck,'DimensionsOfVolData_pix.mat'),'tabulatedDims_pix','-v7.3');
             save(fullfile(FolderToCreateCheck,'DimensionsOfVolData_um.mat'),'tabulatedDims_um','-v7.3');
+elseif ToProcess==0 %Just a structural scan
+   DimsDataPatchRaw_pix=[];
+   DimsDataFull_pix=[];
+   DimsDataFull_um=[];
+   Patches=[];
+   folder1=[];
+   folder2=[];
+   files1Cont=[];
+   files2Cont=[];
+   FolderToCreateCheck=[];
+end
         
 %         % if SVprocVersion==3
 %         %     depth_image=400;
@@ -408,5 +427,15 @@ function [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,Patches,folder1,
 %         clearvars SubStack_Im
 %         
 %         if PatchCount ==1
-    end
+    elseif exist(FileToCreateCheck,'file') %Just a structural scan
+       DimsDataPatchRaw_pix=[];
+       DimsDataFull_pix=[];
+       DimsDataFull_um=[];
+       Patches=[];
+       folder1=[];
+       folder2=[];
+       files1Cont=[];
+       files2Cont=[];
+       FolderToCreateCheck=[];
+end
 end

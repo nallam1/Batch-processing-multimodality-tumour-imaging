@@ -22,9 +22,11 @@ addpath(genpath(ProcScriptDirectory))
 RawDataDirectory='H:\March-June 2022 experiments'%'F:\SBRT project March-June 2021''G:\PDXovo';%'G:\SBRT project March-June 2021'
 cd(RawDataDirectory)
 addpath(genpath(RawDataDirectory))
-ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3=1;
+ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3=2;
 MatlabVer=2020;%version of Matlab being used %only matters if the year is before/after 2014
 PerformSegmentation_0_No_1_Yes=0;%added temporarily Aug 16 2022, as a means for testing without glass-removal code being fully implemented, and noise floor measured for ID-BISIM algorithm--maybe take noise floor as a few pixels above bottom since bottom sometimes has weird artifacts (based on what was seen while performing attenuation coefficient distribution computations).
+%0:To stop at the step of CDV Visualization creating the file named ['CDV' char(int2str(TimeRepsPerYstepToUse)) ' AIP_' mouse '_' day_ '.png']
+%1: to go all the way and create 'IDBISIM_binarized_vessels.mat'
 
 if ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3==1
     Mice={'0322H3M1';'0322H3M2';'0322H3M3'};%'BS1'}%{'L0R4'}%{'0322H3M2';'0322H3M3'}%{'L0R4'}%{'L0R1';'L0R2';'L0R3';'L0R4';'L1R1';'L1R2';'L1R3';'L2R2';'L2R4';'BS1';'BS2';'BS3'};%{'PDXovo-786B';'PDXovo-786C'};%%{'L2R2';'L2R4'};%{'L1R1';'L1R3'};
@@ -33,7 +35,9 @@ if ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3==1
     Directories=[];
     %NumFiles_max=NumMice*NumTime;%may not all have all timepoints
 elseif ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3==2
-    Directories={'G:\PDXovo\PDXovo-786C\Apr 30 2021'; 'G:\PDXovo\PDXovo-786C\May 1 2021'};
+    Directories={'H:\March-June 2022 experiments\0322H3M2\Aug 8 2022';'H:\March-June 2022 experiments\0322H3M2\Aug 15 2022';'H:\March-June 2022 experiments\0322H3M2\Aug 22 2022';'H:\March-June 2022 experiments\0322H3M3\Aug 8 2022';'H:\March-June 2022 experiments\0322H3M3\Aug 15 2022';'H:\March-June 2022 experiments\0322H3M3\Aug 22 2022';}%{'G:\PDXovo\PDXovo-786C\Apr 30 2021'; 'G:\PDXovo\PDXovo-786C\May 1 2021'};
+    Mice={};
+    Timepoints={};
 else
     Directories=[];
 end
@@ -81,7 +85,15 @@ RangeOfAlhaThreshFunc=RangeOfAlhaThreshFunc(1,90);
 [NumberFilesToProcess,BatchOfFolders]=BatchSelection(RawDataDirectory,Directories,Mice,Timepoints,ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3,MatlabVer);
 for DataFolderInd=1:NumberFilesToProcess
     %% 2) Determining number of patches
-    [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,numStacks,folder1,folder2, files1Cont,files2Cont, FolderToCreateCheck,mouse,day_]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd);
+    [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,numStacks,folder1,folder2, files1Cont,files2Cont, FolderToCreateCheck,mouse,day_]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd,TimeRepsPerYstepToUse,PerformSegmentation_0_No_1_Yes);
+    if isempty(FolderToCreateCheck)%structural scan only
+        continue;
+    end
+    if numStacks>3
+        %In case incorrect patching settings... skip for now
+        continue;
+    end
+
     if PerformSegmentation_0_No_1_Yes==1
         fprintf('CDV and ID-BISIM processing starting for %s.\n ',FolderToCreateCheck) 
     else
@@ -311,12 +323,12 @@ for DataFolderInd=1:NumberFilesToProcess
         width_x=linspace(0,DimsDataFull_um(2)/1000,DimsDataFull_pix(2));% ,9,2400 should have been 9,1200
         width_y=linspace(0,DimsDataFull_um(3)/1000,DimsDataFull_pix(4));% ,9,2400
 
-            projection=(flipud(imrotate(squeeze(sum(cast(D3D,'double'),1)),-90)));
+            projection=(squeeze(sum(cast(D3D,'double'),1)));
             %(flipud(imrotate(squeeze(sum(ass(80:220,:,:),1)),-90)));
             set(figure,'Position',[100,100,800,600],'visible','off');
             fs=70;  
             % imagesc(width_x,width_y,sqrt(projection),[100 750])%,[0.55*10^6 6.2*10^6])%,[600 1900]); 
-            imagesc(width_x,width_y,projection)%,[0.00*10^5 2.0*10^5])%,[600 1900]); 
+            imagesc(width_x,width_y,(projection).^2)%,[0.00*10^5 2.0*10^5])%,[600 1900]); 
             colormap 'hot'; 
             
             
@@ -328,7 +340,7 @@ for DataFolderInd=1:NumberFilesToProcess
             hcb1=colorbar; 
             set(hcb1,'FontSize',fs-40,'LineWidth',1,'TickLength',0.01);
             set(gcf,'PaperUnits','inches','PaperPosition',[0 0 26 24])
-            saveas(gcf, [FolderToCreateCheck 'CDV' TimeRepsPerYstepToUse ' AIP_' mouse '_' day_ '.png'], 'png');
+            saveas(gcf, fullfile(FolderToCreateCheck, ['CDV' char(int2str(TimeRepsPerYstepToUse)) ' AIP_' mouse '_' day_ '.png']), 'png');
             
             toc(tstart)%disp(['time: ' num2str(toc/60) ' min']);
 

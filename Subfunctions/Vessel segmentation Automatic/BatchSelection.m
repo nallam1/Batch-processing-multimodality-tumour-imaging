@@ -28,7 +28,7 @@ if ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3==0
 %     while ind<=NumFiles_max && BatchOfFolders{ind}~=0%MiceFolderInd=1:NumMice
     while isempty(BatchOfFolders{ind})
        % for DateFolderInd=1:%[FileSelectDirectory,BatchOfFolders{ind}]
-        BatchOfFolders{ind}=uigetdir(FileSelectDirectory,'Please select folders of datasets to be sv processed');
+        BatchOfFolders{ind}=uigetdir(FileSelectDirectory,'Please select folders of datasets to be CDV processed');
         if BatchOfFolders{ind}==0
             %BatchOfFolders{ind}={'All loaded'}
             break;
