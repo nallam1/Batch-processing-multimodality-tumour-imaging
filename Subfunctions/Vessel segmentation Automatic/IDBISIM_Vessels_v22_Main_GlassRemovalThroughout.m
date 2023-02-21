@@ -10,14 +10,14 @@
 %% Or nevermind it seems to have no effect
 clear
 clc
-tic
+tstart=tic %Defined to be able to keep track of time elapsed across functions
 %%%%%%%%%%%%%%%%%%%%%%
 %% 0) User input
 %%%%%%%%%%%%%%%%%%%%%%
     %% Processing scripts
-        ProcScriptDirectory='D:\Processing code\OCT\1) SvOCT processing\Codes_for_Ottawa\Main for bulk processing-Nader'
+%         ProcScriptDirectory='D:\Processing code\OCT\1) SvOCT processing\Codes_for_Ottawa\Main for bulk processing-Nader'
+        ProcScriptDirectory='D:\git\BatchProcessOptical_OCT-BRI-FLU'%'D:\Processing code\OCT\1) SvOCT processing\Codes_for_Ottawa\Main for bulk processing-Nader'
         addpath(genpath(ProcScriptDirectory))
-        addpath(genpath('D:\'))
         %Raw data directory
             RawDataDirectory='F:\SBRT project March-June 2021'%'G:\PDXovo';%'G:\SBRT project March-June 2021'
             cd(RawDataDirectory)
@@ -26,17 +26,22 @@ tic
         MatlabVer=2020;%version of Matlab being used %only matters if the year is before/after 2014
         ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3=1;
         if ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3==1
-            Mice={'L0R4'}%{'L0R1';'L0R2';'L0R3';'L0R4';'L1R1';'L1R2';'L1R3';'L2R2';'L2R4';'BS1';'BS2';'BS3'};%{'PDXovo-786B';'PDXovo-786C'};%%{'L2R2';'L2R4'};%{'L1R1';'L1R3'};
-            Timepoints={'Apr 9 2021'}%{'Apr 9 2021';'Apr 16 2021';'Apr 23 2021';'Apr 13 2021'};%'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021';'Apr 24 2021';'Apr 26 2021';'Apr 28 2021'}%{'Apr 22 2021';}%{'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021'};%{'Apr 5 2021';'Apr 7 2021';'Apr 9 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 16 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021'};
+            Mice={'0322H3M1';'0322H3M2';'0322H3M3'};%'BS1'}%{'L0R4'}%{'0322H3M2';'0322H3M3'}%{'L0R4'}%{'L0R1';'L0R2';'L0R3';'L0R4';'L1R1';'L1R2';'L1R3';'L2R2';'L2R4';'BS1';'BS2';'BS3'};%{'PDXovo-786B';'PDXovo-786C'};%%{'L2R2';'L2R4'};%{'L1R1';'L1R3'};
+            Timepoints={'Jun 20 2022';'Aug 8 2022';'Aug 15 2022';'Aug 22 2022'}%{'Jun 6 2022';'Jun 15 2022';'Jul 26 2022';'Jul 29 2022';'Aug 5 2022'}%{'Apr 9 2021'}%{'Apr 9 2021';'Apr 16 2021';'Apr 23 2021';'Apr 13 2021'};%'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021';'Apr 24 2021';'Apr 26 2021';'Apr 28 2021'}%{'Apr 22 2021';}%{'Apr 5 2021';'Apr 7 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021';'Apr 22 2021'};%{'Apr 5 2021';'Apr 7 2021';'Apr 9 2021';'Apr 12 2021';'Apr 13 2021';'Apr 14 2021';'Apr 15 2021';'Apr 16 2021';'Apr 17 2021';'Apr 17 2021';'Apr 19 2021';'Apr 20 2021';'Apr 21 2021'};
             %{'Apr 27 2021'};%
             Directories=[];
             %NumFiles_max=NumMice*NumTime;%may not all have all timepoints
         elseif ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3==2
-            Directories={'G:\PDXovo\PDXovo-786C\Apr 30 2021'; 'G:\PDXovo\PDXovo-786C\May 1 2021'};
+            Directories={'H:\March-June 2022 experiments\0322H3M2\Aug 8 2022';'H:\March-June 2022 experiments\0322H3M2\Aug 15 2022';'H:\March-June 2022 experiments\0322H3M2\Aug 22 2022';'H:\March-June 2022 experiments\0322H3M3\Aug 8 2022';'H:\March-June 2022 experiments\0322H3M3\Aug 15 2022';'H:\March-June 2022 experiments\0322H3M3\Aug 22 2022';}%{'G:\PDXovo\PDXovo-786C\Apr 30 2021'; 'G:\PDXovo\PDXovo-786C\May 1 2021'};
+            Mice={};
+            Timepoints={};
         else
             Directories=[];
-        end    
+        end
     %% Data processing settings    
+        PerformSegmentation_0_No_1_Yes=0;%added temporarily Aug 16 2022, as a means for testing without glass-removal code being fully implemented, and noise floor measured for ID-BISIM algorithm--maybe take noise floor as a few pixels above bottom since bottom sometimes has weird artifacts (based on what was seen while performing attenuation coefficient distribution computations).
+            %0:To stop at the step of CDV Visualization creating the file named ['CDV' char(int2str(TimeRepsPerYstepToUse)) ' AIP_' mouse '_' day_ '.png']
+            %1: to go all the way and create 'IDBISIM_binarized_vessels.mat'    
         Patching=0;%%if 9x9 must be patched it seems for memory reasons: Requested 500x1164x8x2400 (83.3GB) array exceeds maximum array size preference. Creation of arrays greater than this limit may take a long
         %time and cause MATLAB to become unresponsive.
         TallorNot=0;%can be ignored (this was an attempt to reduce memory usage
@@ -94,9 +99,16 @@ tic
     %Identifying files to be processed
     [NumberFilesToProcess,BatchOfFolders]=BatchSelection(RawDataDirectory,Directories,Mice,Timepoints,ManualSel_0_OR_ListFiles_1_OR_SemiAut_2_OR_FullAutomatic_3,MatlabVer);
     for DataFolderInd=1:NumberFilesToProcess
-         %% 2) Determining number of patches
-        [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,numStacks,files1,files2, files1Cont,files2Cont, FolderToCreateCheck]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd);
-        ErrorPermittedAxially=ceil(z_res)/(500/ReferencePixDepth)
+        %% 2) Determining number of patches
+        [DimsDataPatchRaw_pix,DimsDataFull_pix,DimsDataFull_um,numStacks,folder1,folder2, files1Cont,files2Cont, FolderToCreateCheck,mouse,day_]=AnalyzeRawDataDims(BatchOfFolders,DataFolderInd,TimeRepsPerYstepToUse,PerformSegmentation_0_No_1_Yes);
+        if isempty(FolderToCreateCheck)%structural scan only
+            continue;
+        end
+        if numStacks>3
+            %In case incorrect patching settings... skip for now
+            continue;
+        end
+    ErrorPermittedAxially=ceil(z_res)/(500/ReferencePixDepth)
         temp=strsplit(BatchOfFolders{DataFolderInd},'\');
         temp1=strsplit(temp{end},'_')
         temp2=strsplit(temp1{end},'mm')
@@ -160,21 +172,28 @@ tic
             fprintf('Creating the %d patches of complex data matrices.\n',numStacks)
             if Patching==0
                  %% 3) Loading given patch or full volume of Complex data & determining dimensions of data set
-                [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime7_int8(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,[]);%Ignore patchcount since load all
+                [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime7_int8(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,[],tstart);%Ignore patchcount since load all
                  %[F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,[]);%Ignore patchcount since load all
                  %[F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime5_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse);
                 fprintf('Stitching together complex data')
                 Patch_stack_Complex=zeros(DimsDataFull_pixUsed);
                 for ind3=PatchesIntermediate:-1:1
-                    Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*ind3-1)+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=(imresizen(single(fetchOutputs(F_SubStack_Re(ind3))),[1 1 1 .5])+Im1*imresizen(single(fetchOutputs(F_SubStack_Im(ind3))),[1 1 1 .5]));
+                    Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*(ind3-1))+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=single(fetchOutputs(F_SubStack_Re(ind3)))+Im1*single(fetchOutputs(F_SubStack_Im(ind3)));
+                    %Aug 15 try to load every other frame?
+                    %Aug 14 2022 realized resizing maybe causing weird artifacts in
+                    %image?--yes since averages frames together than we take
+                    %decorrelation from the averaged frame
+                %Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*ind3-1)+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=(imresizen(single(fetchOutputs(F_SubStack_Re(ind3))),[1 1 1 .5])+Im1*imresizen(single(fetchOutputs(F_SubStack_Im(ind3))),[1 1 1 .5]));
+                    %Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*ind3-1)+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=(imresizen(single(fetchOutputs(F_SubStack_Re(ind3))),[1 1 1 .5])+Im1*imresizen(single(fetchOutputs(F_SubStack_Im(ind3))),[1 1 1 .5]));
                     %                         Patch_stack_Complex(:,((DimsDataPatch_pixUsed(ind3,2)*ind3-1)+(1:DimsDataPatch_pixUsed(ind3,2))),:,:)=(imresizen(single(fetchOutputs(F_SubStack_Re(ind3))),DimsDataPatch_pixUsed(ind3,:))+Im1*imresizen(single(fetchOutputs(F_SubStack_Im(ind3))),DimsDataPatch_pixUsed(ind3,:)));
                     %                         Patch_stack_Re{idxFetchedRe}=imresizen(single(RealP),DimsDataFull_pix(1),[DimsDataFull_pix(2),DimsDataFull_pix(1),DimsDataFull_pix(4)/2]);%not necessairly in right order
                     %                         Patch_stack_Im{idxFetchedIm}=imresizen(single(ImaginaryP),[DimsDataFull_pix(2),DimsDataFull_pix(1),DimsDataFull_pix(4)/2]);
                     fprintf('Completing patch %d/%d \n', ind3,PatchesIntermediate)
                 end
-                %                         Full_stack_ReIm=[Patch_stack_Re{end:-1:1}]+Im1*[Patch_stack_Im{end:-1:1}];%[Full_stack_ReIm{end:-1:1}];%single(double(Patch_stack_Re(:,:,1:TimeRepsToUse,:))+sqrt(-1)*double(Patch_stack_Im(:,:,1:TimeRepsToUse,:)));
-                DimsDataFull_pixUsed=size(Full_stack_ReIm);
-            elseif Patching==1 || Patching==2
+                 %                         Full_stack_ReIm=[Patch_stack_Re{end:-1:1}]+Im1*[Patch_stack_Im{end:-1:1}];%[Full_stack_ReIm{end:-1:1}];%single(double(Patch_stack_Re(:,:,1:TimeRepsToUse,:))+sqrt(-1)*double(Patch_stack_Im(:,:,1:TimeRepsToUse,:)));
+            %%Patch_stack_Complex=Patch_stack_Complex(:,:,:,1:2:end);%Aug 16 try to load every other frame?
+%             DimsDataFull_pixUsed=size(Full_stack_ReIm);
+       `elseif Patching==1 || Patching==2
                  %% 3) Loading given patch or full volume of Complex data & determining dimensions of data set
                 [F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime7_int8(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,PatchCount);
                  %[F_SubStack_Re,F_SubStack_Im,DimsDataFull_pixUsed,DimsDataPatch_pixUsed]=LoadRawDataFullFasterVariableTime6_un_patched_resized_Parfeval(BatchOfFolders,DataFolderInd,files1,files2,files1Cont,files2Cont, DimsDataPatchRaw_pix,DimsDataFull_pix, TimeRepsPerYstepToUse,Patching,PatchCount);
