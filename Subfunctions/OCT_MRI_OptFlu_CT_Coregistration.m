@@ -1,11 +1,11 @@
 %% Multi-modal Co-registration pipeline
 %% Loading all data for co-registration
 Modalities={'Brightfield';'CT';'Fluorescence';'MRI';'OCTA'}%histology
-Directory={'C:\Users\nader\Downloads\D\DSWC + tools paper'}
+Directory={'F:\LSPN and DSWC paper up to Feb 28 2023\DSWC + tools paper'}
 ModalityImg={fullfile('Brightfield-fluorescence\1122H3M7','Opt+markers_Superposition.png');...
             fullfile('MRI\Jan27_2023\1122_H3M7\sagt2w','**');...
             fullfile('CT\1122H3M7 Jan 30 2023','**');...
-            fullfile('OCT\Cohort 4\1122H3M7\January 30, 2023\setting4_svOCT_24f_6x6mm\1122H3M7_30-Jan-2023 13,53,04_ProcVers1_FixOSremv','SV_volume.mat');%'RAW_svOCT.mat'%'Opt+AIP_1122H3M7__January 30, 2023.png')...}
+            fullfile('OCT\Cohort 4\1122H3M7\January 30, 2023\setting4_svOCT_24f_6x6mm\1122H3M7_30-Jan-2023 13,53,04_ProcVers1_FixOSremv','SV_volume.mat')};%'RAW_svOCT.mat'%'Opt+AIP_1122H3M7__January 30, 2023.png')...}
 for int=1:length(ModalityImg)
     ModalityImg{int}=fullfile(Directory,ModalityImg{int})
 end

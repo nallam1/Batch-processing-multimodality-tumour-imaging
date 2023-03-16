@@ -21,13 +21,7 @@ end
     %% Rough alignment
      RightOrientation= 'n';
     if PreviouslyAlignedFound
-        if modalitySet==1
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation_CT-BF.mat'),'transform2D_Coregistration','-mat');
-        elseif modalitySet==2
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation_MRI-BF.mat'),'transform2D_Coregistration','-mat');
-        elseif modalitySet==3
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation_CT-BF.mat'),'transform2D_Coregistration','-mat');
-        end
+        load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-AffineTransformation_%s.mat',CODE_Coreg)),'transform2D_Coregistration','-mat');
 
         RoughTransform=transform2D_Coregistration{1};%loading the previous attempt
     else 
@@ -113,25 +107,24 @@ end
 %         moving = rgb2gray(fluorescence_data);
 %         registrationEstimator(moving,fixed)
     elseif attempt==2 && PreviouslyAlignedFound%==1--no if exists can take a range of values over or equal to 2%seen first %3
-        if modalitySet==1
-            load(fullfile(DirectoryCoregistrationData,'registered_BF-OCT.mat'),'registered_coregisteringRef','-mat')
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FOV_BF-OCt.mat'),'Rfixed','-mat');
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation_BF-OCt.mat'),'transform2D_Coregistration','-mat');
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-MovingPoints_BF-OCt.mat'),'mp','-mat');
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FixedPoints_BF-OCt.mat'),'fp','-mat');
-        elseif modalitySet==2
-            load(fullfile(DirectoryCoregistrationData,'registered_MRI-BF.mat'),'registered_coregisteringRef','-mat')
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FOV_MRI-BF.mat'),'Rfixed','-mat');
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation_MRI-BF.mat'),'transform2D_Coregistration','-mat');
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-MovingPoints_MRI-BF.mat'),'mp','-mat');
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FixedPoints_MRI-BF.mat'),'fp','-mat'); 
-        elseif modalitySet==3
-            load(fullfile(DirectoryCoregistrationData,'registered_CT-BF.mat'),'registered_coregisteringRef','-mat')
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FOV_CT-BF.mat'),'Rfixed','-mat');
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation_CT-BF.mat'),'transform2D_Coregistration','-mat');
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-MovingPoints_CT-BF.mat'),'mp','-mat');
-            load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FixedPoints_CT-BF.mat'),'fp','-mat'); 
-        end
+        load(fullfile(DirectoryCoregistrationData,sprintf('registered_%s.mat',CODE_Coreg)),'registered_coregisteringRef','-mat')
+        load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-FOV_%s.mat',CODE_Coreg)),'Rfixed','-mat');
+        load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-AffineTransformation_%s.mat',CODE_Coreg)),'transform2D_Coregistration','-mat');
+        load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-MovingPoints_%s.mat',CODE_Coreg)),'mp','-mat');
+        load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-FixedPoints_%s.mat',CODE_Coreg)),'fp','-mat');
+%         elseif modalitySet==2
+%             load(fullfile(DirectoryCoregistrationData,'registered_MRI-BF.mat'),'registered_coregisteringRef','-mat')
+%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FOV_MRI-BF.mat'),'Rfixed','-mat');
+%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation_MRI-BF.mat'),'transform2D_Coregistration','-mat');
+%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-MovingPoints_MRI-BF.mat'),'mp','-mat');
+%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FixedPoints_MRI-BF.mat'),'fp','-mat'); 
+%         elseif modalitySet==3
+%             load(fullfile(DirectoryCoregistrationData,'registered_CT-BF.mat'),'registered_coregisteringRef','-mat')
+%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FOV_CT-BF.mat'),'Rfixed','-mat');
+%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation_CT-BF.mat'),'transform2D_Coregistration','-mat');
+%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-MovingPoints_CT-BF.mat'),'mp','-mat');
+%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FixedPoints_CT-BF.mat'),'fp','-mat'); 
+%         end
     elseif attempt>=2  
         [mp,fp] = cpselect(moving,fixed,'Wait',true);% When you are done modifying the control points, export them to the workspace by selecting Export Points to Workspace from the File menu.
         transform2DIntermediate = fitgeotrans(mp,fp,'Similarity');%'affine'
@@ -160,13 +153,7 @@ end
     
     
     end
-        if modalitySet==1
-            saveas(gcf,fullfile(DirectoryCoregistrationData,'CoregistrationOfOpticalModalities_OptFlu-OCT.png'))
-        elseif modalitySet==2
-            saveas(gcf,fullfile(DirectoryCoregistrationData,'CoregistrationOfOpticalModalities_MRI-OptFlu.png'))
-        elseif modalitySet==3
-            saveas(gcf,fullfile(DirectoryCoregistrationData,'CoregistrationOfOpticalModalities_CT-OptFlu.png'))
-        end    
+        saveas(gcf,fullfile(DirectoryCoregistrationData,sprintf('CoregistrationOfOpticalModalities_%s.png',CODE_Coreg))
         CorregistrationIsGood=1;
         
     if ~(attempt==2 && PreviouslyAlignedFound)
@@ -177,26 +164,18 @@ end
 %     save(fullfile(NewFolder,'AffineTransformation.mat'),'t','-mat');
 %     save(fullfile(NewFolder,'MovingPoints.mat'),'mp','-mat');
 %     save(fullfile(NewFolder,'FixedPoints.mat'),'fp','-mat');
-        if modalitySet==1
-            save(fullfile(DirectoryCoregistrationData,'registered_BF-OCT.mat'),'registered_coregisteringRef','-mat')%fluorescence_Brightfield_toOCT
-            save(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FOV_BF-OCT.mat'),'Rfixed','-mat');
-        elseif modalitySet==2
-            save(fullfile(DirectoryCoregistrationData,'registered_MRI-BF.mat'),'registered_coregisteringRef','-mat')%fluorescence_Brightfield_toOCT
-            save(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FOV_MRI-BF.mat'),'Rfixed','-mat');
-        elseif modalitySet==3
-            save(fullfile(DirectoryCoregistrationData,'registered_CT-BF.mat'),'registered_coregisteringRef','-mat')%fluorescence_Brightfield_toOCT
-            save(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FOV_CT-BF.mat'),'Rfixed','-mat');
-        end
+            save(fullfile(DirectoryCoregistrationData,sprintf('registered_%s.mat',CODE_Coreg)),'registered_coregisteringRef','-mat')%fluorescence_Brightfield_toOCT
+            save(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-FOV_%s.mat',CODE_Coreg)),'Rfixed','-mat');
         
     if attempt<=1%2
-        save(fullfile(DirectoryCoregistrationData,'AutomaticRegistration2D-optimizerSettings.mat'),'optimizer','-mat')
-        save(fullfile(DirectoryCoregistrationData,'AutomaticRegistration2D-metricSettings.mat'),'transform2D_Coregistration','-mat');
+        save(fullfile(DirectoryCoregistrationData,sprintf('AutomaticRegistration2D-optimizerSettings_%s.mat',CODE_Coreg)),'optimizer','-mat')
+        save(fullfile(DirectoryCoregistrationData,sprintf('AutomaticRegistration2D-metricSettings_%s.mat',CODE_Coreg)),'transform2D_Coregistration','-mat');
     elseif attempt==2 && PreviouslyAlignedFound==1
         %old was ok
     elseif attempt>=2%3    
-        save(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation.mat'),'transform2D_Coregistration','-mat');
-        save(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-MovingPoints.mat'),'mp','-mat');
-        save(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FixedPoints.mat'),'fp','-mat');
+        save(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-AffineTransformation_%s.mat',CODE_Coreg)),'transform2D_Coregistration','-mat');
+        save(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-MovingPoints_%s.mat',CODE_Coreg)),'mp','-mat');
+        save(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-FixedPoints_%s.mat',CODE_Coreg)),'fp','-mat');
     end
     close all
 end
