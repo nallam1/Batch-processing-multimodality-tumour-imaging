@@ -34,14 +34,36 @@ MRI_Struct=[];
 MRI_StructDir=dir(ModalityImg{2});
 MRI_StructDirFiles={MRI_StructDir.name};
 for int=1:length(MRI_StructDirFiles)
-    if ~isequal(MRI_StructDirFiles{int},'.') && ~isequal(MRI_StructDirFiles{int},'..')
+    if ~isequal(MRI_StructDirFiles{int},'.') && ~isequal(MRI_StructDirFiles{int},'..') && contains(MRI_StructDirFiles{int},'.dcm')
         MRI_Struct(int,:,:)=dicomread(fullfile(fileparts(ModalityImg{2}),MRI_StructDirFiles{int}));
     end
 end
-MRI_Struct_2D=squeeze(sum(MRI_Struct,1)); % Pre-transformation MRI sagittal slice projection into 2D plan
-MRI_Struct_2DIso=imresize(MRI_Struct_2D,size_OCTA_2D);
 DirectoryCoregistrationData=fullfile(fileparts(ModalityImg{2}),'Co-registration intermediates');
+%default first choice of sagittal slice
+SliceSel=1;
+RightSlice= 'n';
+    while isequal(RightSlice,'n')|| isequal(RightSlice,'N')
+        MRI_Struct_2D=squeeze(MRI_Struct(SliceSel,:,:));%squeeze(sum(MRI_Struct,1)); % Pre-transformation MRI sagittal slice projection into 2D plane
+        RightSliceQ=sprintf('Satisfactory sagittal slice? n otherwise type literally anything else or just press enter for yes\n');
+            RightSliceA = inputdlg(RightSliceQ,'Confirm sagittal slice selection');%[1 2; 1 2]
+                RightSlice=RightSliceA{1};
+             if ~isequal(RightSlice,'n') && ~isequal(RightSlice,'N')
+                        RightSlice= 'Y';
+             elseif (isequal(RightSlice,'n') || isequal(RightSlice,'N'))% && countReorientationAtmt2>1
+                    figure, imshowpair(ImageToBeCoregistered,ImageFixed,'montage')
+                    SliceSel=[];
+                        while isempty(SliceSel) || ~(isinteger(int8(SliceSel)) && (0<SliceSel) && (size(MRI_Struct,1)>SliceSel))
+                            SliceSelQ=sprintf('What slice?\n 1 - %d',size(MRI_Struct,1)) 
+                            SliceSelA=inputdlg(SliceSelQ,'Operations options for alignment');
+                            SliceSel=str2double(SliceSelA{1});
+                        end
+                 close all
+             end
+    end
+    save(fullfile(DirectoryCoregistrationData,sprintf('ChoiceOfSagittalSliceMRI_%s.mat',CODE_Coreg)),'transform2D_Coregistration','-mat');
+MRI_Struct_2DIso=imresize(MRI_Struct_2D,size_OCTA_2D);
 
+%%
 if exist(fullfile(DirectoryCoregistrationData,sprintf('registered_%s.mat',CODE_Coreg)))
     PreviouslyAlignedFound=1;
 else
@@ -60,9 +82,16 @@ for int=1:length(CT_StructDir)
         CT_Struct(int,:,:)=dicomread(fullfile(fileparts(ModalityImg{3}),CT_StructDir{int}));
     end
 end
-CT_Struct_2D=squeeze(sum(CT_Struct,1)); % Pre-transformation CT sagittal slice projection into 2D plan
-CT_Struct_2DIso=imresize(CT_Struct_2D,size_OCTA_2D);
 DirectoryCoregistrationData=fullfile(fileparts(ModalityImg{3}),'Co-registration intermediates');
+%CT_Struct_2D=squeeze(sum(CT_Struct,1)); % Pre-transformation CT sagittal slice projection into 2D plan
+%coronal
+
+
+
+
+
+CT_Struct_2DIso=imresize(CT_Struct_2D,size_OCTA_2D);
+
 
 if exist(fullfile(DirectoryCoregistrationData,sprintf('registered_%s.mat',CODE_Coreg)))
     PreviouslyAlignedFound=1;

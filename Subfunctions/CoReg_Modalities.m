@@ -131,7 +131,7 @@ end
     figure('Units','characters','Position',[10 1 180 100]);
     confirmfig=tiledlayout(6,4);
     nexttile(1,[4,4]),
-    imshowpair(fixed,registered_coregisteringRef,'blend')
+    imshowpair(fixed,registered_coregisteringRef,'blend')%'falsecolor'% 'checkerboard'
     %figure('Units','characters','Position',[1 60 120 50]);
     nexttile(17,[2,4])
     imshowpair(fixed,registered_coregisteringRef,'montage')
@@ -169,7 +169,7 @@ end
         
     if attempt<=1%2
         save(fullfile(DirectoryCoregistrationData,sprintf('AutomaticRegistration2D-optimizerSettings_%s.mat',CODE_Coreg)),'optimizer','-mat')
-        save(fullfile(DirectoryCoregistrationData,sprintf('AutomaticRegistration2D-metricSettings_%s.mat',CODE_Coreg)),'transform2D_Coregistration','-mat');
+        save(fullfile(DirectoryCoregistrationData,sprintf('manual-AutomaticRegistration2D-metricSettings_%s.mat',CODE_Coreg)),'transform2D_Coregistration','-mat');
     elseif attempt==2 && PreviouslyAlignedFound==1
         %old was ok
     elseif attempt>=2%3    
