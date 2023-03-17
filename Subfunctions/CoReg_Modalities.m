@@ -1,14 +1,11 @@
 
-function [transform2D_Coregistration,Rfixed,CorregistrationIsGood]=CoReg_Modalities(DirectoryCoregistrationData,ImageFixed,ImageToBeCoregistered,TryAutomatic,PreviouslyAlignedFound)%,ProcessingDate)%PredrawnTumourMask,,alignedPredrawn
-if modalitySet==1
+function [transform2D_Coregistration,Rfixed,CorregistrationIsGood]=CoReg_Modalities(CODE_Coreg,DirectoryCoregistrationData,ImageFixed,ImageToBeCoregistered,TryAutomatic,PreviouslyAlignedFound)%,ProcessingDate)%PredrawnTumourMask,,alignedPredrawn
+if isequal(CODE_Coreg,'BF-OCT')
     fprintf(['Aligning selected brightfield/fluorescence image to transverse projection of OCTA.\n'])%fprintf(['Aligning selected %s to tansverse projection of OCTA.\n'])%brightfield/fluorescence image to transverse projection of svOCT.\n'])
-    CODE_Coreg='BF-OCT';
-elseif modalitySet==2
+elseif isequal(CODE_Coreg,'MRI-BF')
     fprintf(['Aligning selected MRI scan sagittal slice projection to raw brightfield/fluorescence image.\n'])
-    CODE_Coreg='MRI-BF';
-elseif modalitySet==3
+elseif isequal(CODE_Coreg,'CT-BF')
     fprintf(['Aligning selected CT scan transverse projection to raw brightfield/fluorescence image.\n'])
-    CODE_Coreg='CT-BF';
 end
 %%By Nader A.
 %% potential rough transforms
@@ -138,11 +135,11 @@ end
     %figure('Units','characters','Position',[1 60 120 50]);
     nexttile(17,[2,4])
     imshowpair(fixed,registered_coregisteringRef,'montage')
-    if modalitySet==1
+    if isequal(CODE_Coreg,'BF-OCT')
         title(confirmfig,[{'Attempted alignment'}, {'brightfield/epifluorescence - OCT'}])
-    elseif modalitySet==2
+    elseif isequal(CODE_Coreg,'MRI-BF')
         title(confirmfig,[{'Attempted alignment'}, {'MRI - brightfield/epifluorescence '}])
-    elseif modalitySet==3
+    elseif isequal(CODE_Coreg,'CT-BF')
         title(confirmfig,[{'Attempted alignment'}, {'CT - brightfield/epifluorescence '}])
     end
     
@@ -153,7 +150,10 @@ end
     
     
     end
-        saveas(gcf,fullfile(DirectoryCoregistrationData,sprintf('CoregistrationOfOpticalModalities_%s.png',CODE_Coreg))
+        if ~exist(DirectoryCoregistrationData,"dir")
+        mkdir(DirectoryCoregistrationData);
+        end
+        saveas(gcf,fullfile(DirectoryCoregistrationData,sprintf('CoregistrationOfOpticalModalities_%s.png',CODE_Coreg)))
         CorregistrationIsGood=1;
         
     if ~(attempt==2 && PreviouslyAlignedFound)
