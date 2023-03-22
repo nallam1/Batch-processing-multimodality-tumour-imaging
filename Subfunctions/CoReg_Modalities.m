@@ -109,22 +109,12 @@ end
         load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-AffineTransformation_%s.mat',CODE_Coreg)),'transform2D_Coregistration','-mat');
         load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-MovingPoints_%s.mat',CODE_Coreg)),'mp','-mat');
         load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-FixedPoints_%s.mat',CODE_Coreg)),'fp','-mat');
-%         elseif modalitySet==2
-%             load(fullfile(DirectoryCoregistrationData,'registered_MRI-BF.mat'),'registered_coregisteringRef','-mat')
-%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FOV_MRI-BF.mat'),'Rfixed','-mat');
-%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation_MRI-BF.mat'),'transform2D_Coregistration','-mat');
-%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-MovingPoints_MRI-BF.mat'),'mp','-mat');
-%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FixedPoints_MRI-BF.mat'),'fp','-mat'); 
-%         elseif modalitySet==3
-%             load(fullfile(DirectoryCoregistrationData,'registered_CT-BF.mat'),'registered_coregisteringRef','-mat')
-%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FOV_CT-BF.mat'),'Rfixed','-mat');
-%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-AffineTransformation_CT-BF.mat'),'transform2D_Coregistration','-mat');
-%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-MovingPoints_CT-BF.mat'),'mp','-mat');
-%             load(fullfile(DirectoryCoregistrationData,'ManualRegistration2D-FixedPoints_CT-BF.mat'),'fp','-mat'); 
-%         end
     elseif attempt>=2  
         [mp,fp] = cpselect(moving,fixed,'Wait',true);% When you are done modifying the control points, export them to the workspace by selecting Export Points to Workspace from the File menu.
-        transform2DIntermediate = fitgeotrans(mp,fp,'Similarity');%'affine'
+%         if isequal(CODE_Coreg,'BF-OCT')
+            transform2DIntermediate = fitgeotrans(mp,fp,'projective');%'similarity'%'affine'%'projective'
+%         elseif isequal(CODE_Coreg,'MRI-BF')
+%             transform2DIntermediate = fitgeotrans(mp,fp,'similarity');%'affine'
         Rfixed = imref2d(size(fixed));
         registered_coregisteringRef = imwarp(moving,transform2DIntermediate,'OutputView',Rfixed);
     end
@@ -148,7 +138,6 @@ end
                                         user=userA{1};%input('Right orie
     %user = input('Alignment ok (y/n)?','s');
     
-    
     end
         if ~exist(DirectoryCoregistrationData,"dir")
         mkdir(DirectoryCoregistrationData);
@@ -160,10 +149,6 @@ end
         transform2D_Coregistration{1}=RoughTransform;
         transform2D_Coregistration{2}=transform2DIntermediate;%affine2d(transform2DIntermediate.T*RoughTransform.T);%NO Issue is First transform was a similarity transform and  this was
     end
-%     save(fullfile(NewFolder,'registered_fluorescence_Brightfield_toOCT.mat'),'registered_fluorescence','-mat')
-%     save(fullfile(NewFolder,'AffineTransformation.mat'),'t','-mat');
-%     save(fullfile(NewFolder,'MovingPoints.mat'),'mp','-mat');
-%     save(fullfile(NewFolder,'FixedPoints.mat'),'fp','-mat');
             save(fullfile(DirectoryCoregistrationData,sprintf('registered_%s.mat',CODE_Coreg)),'registered_coregisteringRef','-mat')%fluorescence_Brightfield_toOCT
             save(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-FOV_%s.mat',CODE_Coreg)),'Rfixed','-mat');
         
