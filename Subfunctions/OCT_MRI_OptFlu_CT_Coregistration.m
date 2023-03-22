@@ -156,7 +156,7 @@ for int=1:size(CT_Struct,1)
 end
 figure, imshow3D(shiftdim(CT_StructCoreg,1))
 
-%% Final co-registration from MRI and CT to OCTA
+%% Final co-registration from MRI, CT (and BF) to OCTA
 for int=1:size(MRI_StructCoreg,1)
     MRI_StructCoregVF(int,:,:)=imwarp(imwarp(squeeze(MRI_StructCoreg(int,:,:)),transform2D_Coregistration_BFOCT{1}),transform2D_Coregistration_BFOCT{2},'OutputView',Rfixed_BFOCT);
 end
