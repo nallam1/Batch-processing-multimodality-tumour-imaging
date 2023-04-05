@@ -1,4 +1,4 @@
-function RawOCT_UnCoregT0_RotatedShifted=glassAutoExcluderv3(Raw_stOCT,GlassThickness_200PixDepth,ReferencePixDepth,DataCroppedNotResizedInDepth,savefilepath,OS_removal)%,ErrorPermittedAxially,ErrorPermittedLaterally)
+function RawOCT_UnCoregT0_RotatedShifted=glassAutoExcluderv4(Raw_stOCT,GlassThickness_200PixDepth,ReferencePixDepth,DataCroppedNotResizedInDepth,savefilepath,OS_removal)%,ErrorPermittedAxially,ErrorPermittedLaterally)
 %% Automatic glass delineation then removal
 % It looks for the best fit of the top most line of brightest pixels
 % (interface) then extrapolates to perform glass removal

@@ -1,4 +1,4 @@
-function mask_3D_NoGlass=ContouringFunctionFilesLoadedOrMatFile12_RatioDimensions(DimsVesselsRaw3D,num_contoured_slices,MouseTimepoint,BatchOfFolders,countBatchFolder,SaveFilenameDataGlassTraceTop,SaveFilenameDataGlassTraceBot,SaveFilenameData3DMaskGlassInc,SaveFilenameData3DMaskGlassExc,saveFolder,FolderConsideredSaveDraft,LoadOrMatfile,AutoProcess,OSremoval,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,GlassThickness_200PixDepth,DataCroppedInDepth,ReferencePixDepth)%,umPerPix_For200PixDepth)
+function mask_3D_NoGlass=WindowRemoverOCT_Coreg_Ex_vivo__In_vivo(StOCTMatFileToProcess,Varname,num_contoured_slices,NickName,saveFolder,AutoProcess,autoLineDector,OS_removal,GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth)%,umPerPix_For200PixDepth)
 %% by Nader A.
 %% Description
 % num_contoured_slices: How many contours must be drawn--> If glass only 2
@@ -17,98 +17,56 @@ function mask_3D_NoGlass=ContouringFunctionFilesLoadedOrMatFile12_RatioDimension
 % Contour out top of glass surface (since this is the first clearest
 % interface.
 
-%% Contour out the Glass in stOCT volume (just underneath the glass)
-if isempty(BatchOfFolders{countBatchFolder,2})%no binarized vessels
-    OCTAVarname=whos('-file',BatchOfFolders{countBatchFolder,1});
-        OCTAVarnameF=OCTAVarname.name;
-            if isequal(LoadOrMatfile,'Matfile')
-                OCTA=matfile(BatchOfFolders{countBatchFolder,1});
-                stOCT=matfile(BatchOfFolders{countBatchFolder,3});
-            elseif isequal(LoadOrMatfile,'Load')
-                OCTA=load(BatchOfFolders{countBatchFolder,1});
-                stOCT=load(BatchOfFolders{countBatchFolder,3});
-            end
-else
-    OCTAVarname=whos('-file',BatchOfFolders{countBatchFolder,2});
-        OCTAVarnameF=OCTAVarname.name;
-            if isequal(LoadOrMatfile,'Matfile')
-                OCTA=matfile(BatchOfFolders{countBatchFolder,2});
-                stOCT=matfile(BatchOfFolders{countBatchFolder,3});
-            elseif isequal(LoadOrMatfile,'Load')
-                OCTA=load(BatchOfFolders{countBatchFolder,2});
-                stOCT=load(BatchOfFolders{countBatchFolder,3});
-            end
+%% Saving directories defined
+FolderConsideredSaveDraft=fullfile(saveFolder,NickName);
+if ~exist(FolderConsideredSaveDraft,'dir')
+    mkdir(FolderConsideredSaveDraft);
 end
-    stOCTVarname=whos('-file',BatchOfFolders{countBatchFolder,3});
-        stOCTVarnameF=stOCTVarname.name;
-    
-    
-
-Dims=size(stOCT.(stOCTVarnameF));
-DimsVessels=size(OCTA.(OCTAVarnameF));
-RatioScales=DimsVessels(3)/Dims(3);%DimsVessels(2)/Dims(2);
-
+SaveFilenameDataWindowTraceTop = fullfile(FolderConsideredSaveDraft,'zline_WindowTop_NoRotTransYet.mat');
+SaveFilenameDataWindowTraceBot = fullfile(FolderConsideredSaveDraft,'zline_WindowBot_NoRotTransYet.mat');
+SaveFilenameData3DMaskGlassInc = fullfile(FolderConsideredSaveDraft,'mask3D_WindowInc_NoRotTransYet.mat');
+SaveFilenameData3DMaskGlassExc = fullfile(FolderConsideredSaveDraft,'mask3D_WindowExc_NoRotTransYet.mat');    
+if ~exist(SaveFilenameDataWindowTraceTop,'file') || ~exist(SaveFilenameDataWindowTraceBot,'file')
+    AutoProcess=0;%if not available simply will not try to load them
+end
+%% data loading
+% Raw_stOCT=StOCTMatFileToProcess.(Varname)
+% StOCTMatFileToProcess=matfile(StOCTMatFileToProcessFilepath);
+Dims=size(StOCTMatFileToProcess.(Varname));
+StEnFace=squeeze(sum(StOCTMatFileToProcess.(Varname),1));
 %mask_3D_compressed = zeros(Dims(1), Dims(2), num_contoured_slices); %initialize the 3D compressed mask
     zline_GlassTrace_TopSurf=cell(num_contoured_slices,1);
     zline_GlassTrace_BotSurf=zline_GlassTrace_TopSurf;
-    slices=round(linspace(1,round(Dims(3)/2),num_contoured_slices))%Dims(3)
+    slices=round(linspace(round(Dims(3)/6),round(Dims(3)*5/6),num_contoured_slices))%Dims(3)
         n=0;%slice count
 %         changeStruct=[];%Initialized since if later decide to set Oversaturation removal to 0 needs to remain for all later B-scans
-%% Running contouring
-if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==0 || Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==2 
+%% Contour out the Glass in stOCT volume (just underneath the glass)
+% if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==0 || Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==2 
 if AutoProcess==0
+    if autoLineDector==0
     while n<num_contoured_slices%for n=1:num_contoured_slices % For loop does not work if I am tyring to extend the limit-- test example:for x=1:y
-n=n+1;
+        n=n+1;
         SliceN=slices(n);
-%         changeStruct
-%         if isequal(LoadOrMatfile,'Matfile')
-%             if ~isempty(changeStruct)
-%                 if changeStruct==0
-%                     tempst=squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN));
-%                 else
-                    tempst=removeOversaturation4(squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN)),OSremoval);
-%                 end
-%             else
-%                 tempst=removeOversaturation4(squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN)),OSremoval);
-%             end
-            tempsv=squeeze(OCTA.(OCTAVarnameF)(:,:,ceil(SliceN*RatioScales)));
-            tempsvEnFace=imrotate(squeeze(sum(OCTA.(OCTAVarnameF),1)),-90);%squeeze(sum(OCTA.(OCTAVarnameF),1));
-%         elseif isequal(LoadOrMatfile,'Load')
-% %             if ~isempty(changeStruct)
-% %                 if changeStruct==0
-% %                     tempst=squeeze(stOCT(:,:,SliceN));
-% %                 else
-%                     tempst=removeOversaturation4(squeeze(stOCT(:,:,SliceN)),OSremoval);
-% %                 end
-% %             else
-% %                 tempst=removeOversaturation4(squeeze(stOCT(:,:,SliceN)),OSremoval);
-% %             end
-%             tempsv=squeeze(OCTA.(OCTAVarnameF)(:,:,ceil(SliceN*RatioScales)));
-%             tempsvEnFace=squeeze(sum(OCTA.(OCTAVarnameF),1));
-%         end
-        
-
+                    tempst=removeOversaturation4(squeeze(StOCTMatFileToProcess.(Varname)(:,:,SliceN)),OS_removal);
         Goodtogo='n';
         attempt=0;
         while Goodtogo=='n'
             %% Visualization + B-scan to label
-            figure('Units','characters','Position',[1 1 120 50]);
+            figure('Units','characters','Position',[50 20 200 50]);
+            RatioScales=1;
                 t = tiledlayout(4,7);
-                    nexttile(1,[2,3])%[2,3]
-                        hImTop=imagesc(tempsvEnFace);
+                    nexttile([2,3])%[2,3]
+                        hImTop=imagesc(fliplr(imrotate(StEnFace,-90)));
                             hold on
                             plot([0 Dims(3)], [ceil(SliceN*RatioScales) ceil(SliceN*RatioScales)],'Color','r','LineWidth',2)
                             hold off
                         title(sprintf('OCTA en-face view positioning'))    
-                    nexttile(15,[2,3])%[2,3]
-                            hSvRawvsSvBin=imshowpair(tempst,tempsv);
-                        title(sprintf('stOCT vs OCTA slice = %d\n%s',SliceN,fileparts(fileparts(saveFolder))))
-                    nexttile(4,[4,4])
+                    nexttile([4,4])
                             hIm=imagesc(tempst)%imagesc(refIm);
                             colormap(gray)
                         title(sprintf('Contour top surface of glass on stOCT slice = %d.\n Simply enter 2 points (or more if glass is broken) then press enter.\n If unhappy with view, press Esc for more options.',SliceN))
                         
-                  title(t,MouseTimepoint)%fileparts(fileparts(saveFolder)))%fileparts(fileparts(SaveFilenameData500um))))
+                  title(t,NickName)%fileparts(fileparts(saveFolder)))%fileparts(fileparts(SaveFilenameData500um))))
                     set(gcf, 'Position', get(0,'Screensize'));
                if n==1 %%initial frame based on previously drawn timepoint
                    if attempt==0
@@ -186,18 +144,18 @@ n=n+1;
                     end
                     if isempty(changeStruct)
 %                         if isequal(LoadOrMatfile,'Matfile')
-                            tempst=removeOversaturation4(squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN)),OSremoval);
+                            tempst=removeOversaturation4(squeeze(StOCTMatFileToProcess.(Varname)(:,:,SliceN)),OS_removal);
 %                         elseif isequal(LoadOrMatfile,'Load')
-%                             tempst=removeOversaturation4(squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN)),OSremoval);
+%                             tempst=removeOversaturation4(squeeze(StOCTMatFileToProcess.(Varname)(:,:,SliceN)),OSremoval);
 %                         end
                         changeStructCond='y';
                         break;
                     elseif (0<=changeStruct && changeStruct<1)
-                        OSremoval=changeStruct;
+                        OS_removal=changeStruct;
 %                         if isequal(LoadOrMatfile,'Matfile')
-                            tempst=removeOversaturation4(squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN)),OSremoval);
+                            tempst=removeOversaturation4(squeeze(StOCTMatFileToProcess.(Varname)(:,:,SliceN)),OS_removal);
 %                         elseif isequal(LoadOrMatfile,'Load')
-%                             tempst=removeOversaturation4(squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN)),OSremoval);
+%                             tempst=removeOversaturation4(squeeze(StOCTMatFileToProcess.(Varname)(:,:,SliceN)),OSremoval);
 %                         end
                         changeStructCond='y';
                     elseif changeStruct>=1
@@ -207,17 +165,17 @@ n=n+1;
                             SliceN=changeStruct;
                             slices(n)=changeStruct;
 %                                 if isequal(LoadOrMatfile,'Matfile')
-                                    tempst=removeOversaturation4(squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN)),OSremoval);
+                                    tempst=removeOversaturation4(squeeze(StOCTMatFileToProcess.(Varname)(:,:,SliceN)),OS_removal);
 %                                 elseif isequal(LoadOrMatfile,'Load')
-%                                     tempst=removeOversaturation4(squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN)),OSremoval);
+%                                     tempst=removeOversaturation4(squeeze(StOCTMatFileToProcess.(Varname)(:,:,SliceN)),OSremoval);
 %                                 end
                             changeStructCond='y';
                         end
 %                     elseif changeStruct==0
 %                         if isequal(LoadOrMatfile,'Matfile')
-%                             tempst=squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN));
+%                             tempst=squeeze(StOCTMatFileToProcess.(Varname)(:,:,SliceN));
 %                         elseif isequal(LoadOrMatfile,'Load')
-%                             tempst=squeeze(stOCT.(stOCTVarnameF)(:,:,SliceN));
+%                             tempst=squeeze(StOCTMatFileToProcess.(Varname)(:,:,SliceN));
 %                         end
 %                         changeStructCond='y';
                     end
@@ -263,7 +221,7 @@ if isequal(ToporBotDrawn,'t')
         for indx=1:(size(user_roi.Position,1)-1)
             slope(indx)=(user_roi.Position(indx+1,2)-user_roi.Position(indx,2))/(user_roi.Position(indx+1,1)-user_roi.Position(indx,1));
             InterceptTopGlass(indx)=user_roi.Position(indx,2)-slope(indx)*user_roi.Position(indx,1);
-                if DataCroppedInDepth==1
+                if DataCroppedNotResizedInDepth==1
                     InterceptBotGlass(indx)=InterceptTopGlass(indx)+GlassThickness_200PixDepth*500/ReferencePixDepth;%;%user_roi.Position(1,2)-slope*user_roi.Position(1,1);
                 else
                     InterceptBotGlass(indx)=InterceptTopGlass(indx)+GlassThickness_200PixDepth*size(tempst,1)/ReferencePixDepth;%;%user_roi.Position(1,2)-slope*user_roi.Position(1,1);
@@ -286,7 +244,7 @@ if isequal(ToporBotDrawn,'t')
             InterceptTopGlass=user_roi.Position(1,2)-slope*user_roi.Position(1,1);
                 zlineTop=slope*[1:size(tempst,2)]+InterceptTopGlass;%round only at the end
         %% bottom
-        if DataCroppedInDepth==1
+        if DataCroppedNotResizedInDepth==1
             InterceptBotGlass=InterceptTopGlass+GlassThickness_200PixDepth*500/ReferencePixDepth;%;%user_roi.Position(1,2)-slope*user_roi.Position(1,1); 
         else
             InterceptBotGlass=InterceptTopGlass+GlassThickness_200PixDepth*size(tempst,1)/ReferencePixDepth;%;%user_roi.Position(1,2)-slope*user_roi.Position(1,1);
@@ -300,7 +258,7 @@ elseif isequal(ToporBotDrawn,'b')
         for indx=1:(size(user_roi.Position,1)-1)
             slope(indx)=(user_roi.Position(indx+1,2)-user_roi.Position(indx,2))/(user_roi.Position(indx+1,1)-user_roi.Position(indx,1));
             InterceptBotGlass(indx)=user_roi.Position(indx,2)-slope(indx)*user_roi.Position(indx,1);
-                if DataCroppedInDepth==1
+                if DataCroppedNotResizedInDepth==1
                     InterceptTopGlass(indx)=InterceptBotGlass(indx)-GlassThickness_200PixDepth*500/ReferencePixDepth;%;%user_roi.Position(1,2)-slope*user_roi.Position(1,1); 
                 else
                     InterceptTopGlass(indx)=InterceptBotGlass(indx)-GlassThickness_200PixDepth*size(tempst,1)/ReferencePixDepth;%;%user_roi.Position(1,2)-slope*user_roi.Position(1,1);
@@ -323,7 +281,7 @@ elseif isequal(ToporBotDrawn,'b')
             InterceptBotGlass=user_roi.Position(1,2)-slope*user_roi.Position(1,1);
                 zlineBot=slope*[1:size(tempst,2)]+InterceptBotGlass;%round only at the end
         %% top
-            if DataCroppedInDepth==1
+            if DataCroppedNotResizedInDepth==1
                 InterceptTopGlass=InterceptBotGlass-GlassThickness_200PixDepth*500/ReferencePixDepth;%umPerPix_For200PixDepth;%user_roi.Position(1,2)-slope*user_roi.Position(1,1);
             else
                 InterceptTopGlass=InterceptBotGlass-GlassThickness_200PixDepth*size(tempst,1)/ReferencePixDepth;%umPerPix_For200PixDepth;%user_roi.Position(1,2)-slope*user_roi.Position(1,1);
@@ -351,7 +309,8 @@ end
 %                                 fprintf('Processing bottom contour of slice %d by simple projection of top contour down by %dum\n', SliceN,DepthToSample_um)
     
 if BrokenGlass==1
-    if (slices(n)+25)>slices(end)%getting past the point of too many slices
+    JumpExpectedToNextSlice=ceil(Dims(3)/6);%abs(ceil(diff([slices(n+1),slices(n)])/2));
+    if (slices(n)+JumpExpectedToNextSlice)>slices(end)%getting past the point of too many slices
         NotEnoughContours={};%[];
                 NotEnoughContoursQ=inputdlg(sprintf('Would you like to use more contours?\n Type y or simply press enter for yes otherwise type n for negation\n'),'Enough contours?');
                 NotEnoughContours=NotEnoughContoursQ{1};
@@ -365,7 +324,7 @@ if BrokenGlass==1
                 slices(numofSliceRemaining+1)=slices(numofSliceRemaining);
             end
             num_contoured_slices=num_contoured_slices+1;
-            slices(n+1)=slices(n)+25;
+            slices(n+1)=slices(n)+JumpExpectedToNextSlice;
         else
             slices=slices(1:n);
             num_contoured_slices=length(slices);%end it
@@ -377,22 +336,26 @@ if BrokenGlass==1
                 slices(numofSliceRemaining+1)=slices(numofSliceRemaining);
             end
             num_contoured_slices=num_contoured_slices+1;
-            slices(n+1)=slices(n)+25;
+            slices(n+1)=slices(n)+JumpExpectedToNextSlice;%diff([slices(n+1),slices(n)])/2;
     end
 end
-    %% Saving traces
-                save(SaveFilenameDataGlassTraceTop,'zline_GlassTrace_TopSurf','-v7.3');
-                save(SaveFilenameDataGlassTraceBot,'zline_GlassTrace_BotSurf','-v7.3');
-end
+
+    end
+        %% Saving traces
+                save(SaveFilenameDataWindowTraceTop,'zline_GlassTrace_TopSurf','-v7.3');
+                save(SaveFilenameDataWindowTraceBot,'zline_GlassTrace_BotSurf','-v7.3');
 mask_3D_NoGlass=[];
+    elseif autoLineDector==1
+           %glassAutoExcluderv4(Raw_stOCT,GlassThickness_200PixDepth,ReferencePixDepth,DataCroppedNotResizedInDepth,savefilepath,OS_removal) 
+    end
 end
-end
-if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || AutoProcess==1
-                    load(SaveFilenameDataGlassTraceTop)
-                    load(SaveFilenameDataGlassTraceBot)
+% end
+if  AutoProcess==1%Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 ||
+    load(SaveFilenameDataWindowTraceTop)
+    load(SaveFilenameDataWindowTraceBot)
 end
 
-if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==2
+% if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==2
     %% Creating no glass mask interpolating across contours drawn in previous steps
     %% From Top surface of glass
     mask_3D_GlassInc=ones([Dims]);
@@ -401,9 +364,9 @@ if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOn
         for n=1:num_contoured_slices-1
             slopeyz_perXSlice{n}=-diff([zline_GlassTrace_TopSurf{n+1};zline_GlassTrace_TopSurf{n}],1,1)/(slices(n+1)-slices(n));%positive slope means later y slices are lower
             Interceptyz_perXSlice{n}=zline_GlassTrace_TopSurf{n}-slopeyz_perXSlice{n}*slices(n);%Do not transpose by zline_GlassTrace_TopSurf{1}(:)
-                    if n==1 && num_contoured_slices==2
-                        rangey=1:size(mask_3D_GlassInc,3);
-                    elseif n==1 && num_contoured_slices>2
+                    if n==1 && num_contoured_slices==2 %First pair of points for contour based on 2 slices
+                        rangey=1:size(mask_3D_GlassInc,3); 
+                    elseif n==1 && num_contoured_slices>2 %First pair of points for contour based on >2 slices
                         rangey=1:slices(n+1);%1:floor(user_roi.Position(indx+1,1));
                     elseif n==(num_contoured_slices-1)
                         rangey=slices(n):size(mask_3D_GlassInc,3);%ceil(user_roi.Position(indx,1)):size(tempst,2);
@@ -426,7 +389,7 @@ if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOn
             end
         end
         
-        mask_3D_GlassInc=imresize3(cast(mask_3D_GlassInc,'uint16'),DimsVesselsRaw3D);
+        mask_3D_GlassInc=cast(mask_3D_GlassInc,'uint16');
         save(SaveFilenameData3DMaskGlassInc,'mask_3D_GlassInc','-v7.3');
         
     %% From bottom surface Of Glass
@@ -461,7 +424,7 @@ if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOn
             end
         end
 
-     mask_3D_NoGlass = imresize3(cast(mask_3D_NoGlass,'uint16'),DimsVesselsRaw3D);
+     mask_3D_NoGlass = cast(mask_3D_NoGlass,'uint16');
      save(SaveFilenameData3DMaskGlassExc,'mask_3D_NoGlass','-v7.3');
-end     
+% end     
 end

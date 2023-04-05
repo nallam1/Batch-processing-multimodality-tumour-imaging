@@ -26,8 +26,16 @@ else
     PreviouslyAlignedFound=0;
 end
 TryAutomatic=0;
-   
-[transform2D_Coregistration_BFOCT,Rfixed_BFOCT]=CoReg_Modalities(CODE_Coreg,DirectoryCoregistrationData,OCTA_2DIso,BriFlu_2D_Iso,TryAutomatic,PreviouslyAlignedFound)%,ProcessingDate)%PredrawnTumourMask,,alignedPredrawn
+%warpType
+%case 1, TransType="similarity";
+%case 2, TransType="reflectivesimilarity";
+%case 3, TransType="affine";
+%case 4, TransType="projective";	
+%case 5, TransType="polynomial";
+%case 6, TransType="pwl";
+%case 7, TransType="lwm";
+
+[transform2D_Coregistration_BFOCT,Rfixed_BFOCT]=CoReg_Modalities(CODE_Coreg,DirectoryCoregistrationData,OCTA_2DIso,BriFlu_2D_Iso,TryAutomatic,PreviouslyAlignedFound,4,[])%,ProcessingDate)%PredrawnTumourMask,,alignedPredrawn
 %% 2) Co-register MRI to Brightfield (and then apply geometric transformation above)
 CODE_Coreg='MRI-BF';
 MRI_Struct=[];
@@ -84,7 +92,7 @@ else
 end
 TryAutomatic=0;
 
-[transform2D_Coregistration_MRIBF,Rfixed_MRIBF]=CoReg_Modalities(CODE_Coreg,DirectoryCoregistrationData,BriFlu_2D_Iso,MRI_Struct2D,TryAutomatic,PreviouslyAlignedFound)%,ProcessingDate)%PredrawnTumourMask,,alignedPredrawn
+[transform2D_Coregistration_MRIBF,Rfixed_MRIBF]=CoReg_Modalities(CODE_Coreg,DirectoryCoregistrationData,BriFlu_2D_Iso,MRI_Struct2D,TryAutomatic,PreviouslyAlignedFound,4,[]);%,ProcessingDate)%PredrawnTumourMask,,alignedPredrawn
 %% Applying geometric transform for co-registering MRI-BF
 % load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-FOV_%s.mat',CODE_Coreg));
 % load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-AffineTransformation_%s.mat',CODE_Coreg)));
@@ -99,9 +107,9 @@ CODE_Coreg='CT-BF';
 CT_Struct=[];
 CT_StructDir=dir(ModalityImg{3});
 CT_StructDirFiles={CT_StructDir.name};
-for int=1:length(CT_StructDir)
-    if ~isequal(CT_StructDir{int},'.') && ~isequal(CT_StructDir{int},'..')
-        CT_Struct(int,:,:)=dicomread(fullfile(fileparts(ModalityImg{3}),CT_StructDir{int}));
+for int=1:length(CT_StructDirFiles)
+    if ~isequal(CT_StructDirFiles{int},'.') && ~isequal(CT_StructDirFiles{int},'..') && contains(CT_StructDirFiles{int},'.dcm')
+        CT_Struct(int,:,:)=dicomread(fullfile(fileparts(ModalityImg{3}),CT_StructDirFiles{int}));
     end
 end
 DirectoryCoregistrationData=fullfile(fileparts(ModalityImg{3}),'Co-registration intermediates');
@@ -114,21 +122,22 @@ else
 end
 RightSlice= 'n';
     while isequal(RightSlice,'n')|| isequal(RightSlice,'N')
-        CT_Struct2D=squeeze(CT_Struct(SliceSelCT,:,:));%squeeze(sum(CT_Struct,1)); % Pre-transformation CT coronal slice projection into 2D plane
-        CT_Struct2D=(CT_Struct2D./max(CT_Struct2D,[],'all'));
-        figure, imagesc(CT_Struct2D),
+        CT_Struct2D=squeeze(CT_Struct(:,SliceSelCT,:));%squeeze(sum(CT_Struct,1)); % Pre-transformation CT coronal slice projection into 2D plane
+        CT_Struct2D=CT_Struct2D+abs(min(CT_Struct2D,[],'all'));
+        CT_Struct2D=(CT_Struct2D./max(CT_Struct2D,[],'all')).^0.5;
+        figure, imshow(CT_Struct2D),
         %colormap
-        RightSliceQ=sprintf('Satisfactory sagittal slice? n otherwise type literally anything else or just press enter for yes\n');
-            RightSliceA = inputdlg(RightSliceQ,'Confirm sagittal slice selection',1,{''},'on');%[1 2; 1 2]
+        RightSliceQ=sprintf('Satisfactory coronal slice? n otherwise type literally anything else or just press enter for yes\n');
+            RightSliceA = inputdlg(RightSliceQ,'Confirm coronal slice selection',1,{''},'on');%[1 2; 1 2]
                 %RightSliceA.opts.WindowStyle = 'normal'
                 RightSlice=RightSliceA{1};
              if ~isequal(RightSlice,'n') && ~isequal(RightSlice,'N')
                         RightSlice= 'Y';
              elseif (isequal(RightSlice,'n') || isequal(RightSlice,'N'))% && countReorientationAtmt2>1
-                    figure, imshow3D(shiftdim(CT_Struct,1));%volumeViewer(CT_Struct)
+                    figure, imshow3D(shiftdim(CT_Struct,2));%volumeViewer(CT_Struct)
                     SliceSelCT=[];
                         while isempty(SliceSelCT) || ~(isinteger(int8(SliceSelCT)) && (0<SliceSelCT) && (size(CT_Struct,1)>SliceSelCT))
-                            SliceSelQ=sprintf('What slice?\n 1 - %d',size(CT_Struct,1)); 
+                            SliceSelQ=sprintf('What slice?\n 1 - %d',size(CT_Struct,2)); 
                             opts.WindowStyle = 'normal'
                             SliceSelA=inputdlg(SliceSelQ,'Operations options for alignment',1,{''},opts)%SliceSelA=inputdlg(SliceSelQ,'Operations options for alignment',1,{''},'on','WindowStyle','normal');
                             SliceSelCT=str2double(SliceSelA{1});
@@ -136,7 +145,11 @@ RightSlice= 'n';
                  close all
              end
     end
+if ~exist(DirectoryCoregistrationData,'dir')
+    mkdir(DirectoryCoregistrationData);
+end
     save(fullfile(DirectoryCoregistrationData,sprintf('ChoiceOfCoronalSliceCT_%s.mat',CODE_Coreg)),'SliceSelCT','-mat');
+
 
 if exist(fullfile(DirectoryCoregistrationData,sprintf('registered_%s.mat',CODE_Coreg)))
     PreviouslyAlignedFound=1;
@@ -144,17 +157,17 @@ else
     PreviouslyAlignedFound=0;
 end
 TryAutomatic=0;
-
-[transform2D_Coregistration_CTBF,Rfixed_CTBF]=CoReg_Modalities(CODE_Coreg,DirectoryCoregistrationData,BriFlu_2D_Iso,CT_Struct_2D,TryAutomatic,PreviouslyAlignedFound)%,ProcessingDate)%PredrawnTumourMask,,alignedPredrawn
+%%
+[transform2D_Coregistration_CTBF,Rfixed_CTBF]=CoReg_Modalities(CODE_Coreg,DirectoryCoregistrationData,BriFlu_2D_Iso,CT_Struct2D,TryAutomatic,PreviouslyAlignedFound,4,[])%,ProcessingDate)%PredrawnTumourMask,,alignedPredrawn
 %% Applying geometric transform for co-registering CT-BF
 % load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-FOV_%s.mat',CODE_Coreg));
 % load(fullfile(DirectoryCoregistrationData,sprintf('ManualRegistration2D-AffineTransformation_%s.mat',CODE_Coreg)));
 % Rfixed_CTBF=Rfixed;
 % transform2D_Coregistration_CTBF=transform2D_Coregistration;
-for int=1:size(CT_Struct,1)
-    CT_StructCoreg(int,:,:)=imwarp(imwarp(squeeze(CT_Struct(int,:,:)),transform2D_Coregistration_CTBF{1}),transform2D_Coregistration_CTBF{2},'OutputView',Rfixed_CTBF);
+for int=1:size(CT_Struct,2)
+    CT_StructCoreg(:,int,:)=imwarp(imwarp(squeeze(CT_Struct(:,int,:)),transform2D_Coregistration_CTBF{1}),transform2D_Coregistration_CTBF{2},'OutputView',Rfixed_CTBF);
 end
-figure, imshow3D(shiftdim(CT_StructCoreg,1))
+figure, imshow3D(shiftdim(CT_StructCoreg,2))
 
 %% Final co-registration from MRI, CT (and BF) to OCTA
 for int=1:size(MRI_StructCoreg,1)
@@ -164,17 +177,33 @@ figure, imshow3D(shiftdim(MRI_StructCoregVF,1))
     MRI_Struct_2D_cVF=squeeze(MRI_StructCoregVF(SliceSelMRI,:,:));
     MRI_Struct_2D_cVF=(MRI_Struct_2D_cVF./max(MRI_Struct_2D_cVF,[],'all'));
 
-for int=1:size(CT_StructCoreg,1)
-    CT_StructCoregVF(int,:,:)=imwarp(imwarp(squeeze(CT_StructCoreg(int,:,:)),transform2D_Coregistration_BFOCT{1}),transform2D_Coregistration_BFOCT{2},'OutputView',Rfixed_BFOCT);
+for int=1:size(CT_StructCoreg,2)
+    CT_StructCoregVF(:,int,:)=imwarp(imwarp(squeeze(CT_StructCoreg(:,int,:)),transform2D_Coregistration_BFOCT{1}),transform2D_Coregistration_BFOCT{2},'OutputView',Rfixed_BFOCT);
 end
 figure, imshow3D(shiftdim(CT_StructCoregVF,1))
-    CT_Struct_2D_cVF=squeeze(CT_StructCoregVF(SliceSelCT,:,:));
+    CT_Struct_2D_cVF=squeeze(CT_StructCoregVF(:,SliceSelCT,:));
     CT_Struct_2D_cVF=(CT_Struct_2D_cVF./max(CT_Struct_2D_cVF,[],'all'));
 
-BriFlu_2D_cVF=imwarp(imwarp(squeeze(BriFlu_2D_Iso,transform2D_Coregistration_BFOCT{1}),transform2D_Coregistration_BFOCT{2},'OutputView',Rfixed_BFOCT);
+BriFlu_2D_cVF=imwarp(imwarp(squeeze(BriFlu_2D_Iso),transform2D_Coregistration_BFOCT{1}),transform2D_Coregistration_BFOCT{2},'OutputView',Rfixed_BFOCT);
 
-figure, t=tiledlayout
-nextile, imagesc(OCTA_2DIso), title('OCTA')
-nextile, imagesc(BriFlu_2D_cVF), title('BF')
-nextile, imagesc(MRI_Struct_2D_cVF), title('MRI')
-nextile, imagesc(CT_Struct_2D_cVF), title('CT')
+%% All together not co-registered
+figure('Units','characters','Position',[10 1 360 60]), t=tiledlayout(1,8)
+nexttile(7,[1,2]), imagesc(OCTA_2DIso), title('OCTA')
+nexttile(5,[1,2]), imagesc(BriFlu_2D_Iso), title('BF')
+nexttile(3,[1,2]), imagesc(squeeze(MRI_Struct(SliceSelMRI,:,:))), title('MRI')
+nexttile(1,[1,2]), imagesc(squeeze(CT_Struct(:,SliceSelCT,:))), title('CT')
+title(t,'Multi-modal co-registration')
+%% All only co-registered to brightfield
+figure('Units','characters','Position',[10 1 360 60]), t=tiledlayout(1,8)
+nexttile(7,[1,2]), imagesc(OCTA_2DIso), title('OCTA')
+nexttile(5,[1,2]), imagesc(BriFlu_2D_Iso), title('BF')
+nexttile(3,[1,2]), imagesc(squeeze(MRI_StructCoreg(SliceSelMRI,:,:))), title('MRI')
+nexttile(1,[1,2]), imagesc(squeeze(CT_StructCoreg(:,SliceSelCT,:))), title('CT')
+title(t,'Multi-modal co-registration')
+%% All together now co-registered
+figure('Units','characters','Position',[10 1 360 60]), t=tiledlayout(1,8)
+nexttile(7,[1,2]), imagesc(OCTA_2DIso), title('OCTA')
+nexttile(5,[1,2]), imagesc(BriFlu_2D_cVF), title('BF')
+nexttile(3,[1,2]), imagesc(MRI_Struct_2D_cVF), title('MRI')
+nexttile(1,[1,2]), imagesc(CT_Struct_2D_cVF), title('CT')
+title(t,'Multi-modal co-registration')
