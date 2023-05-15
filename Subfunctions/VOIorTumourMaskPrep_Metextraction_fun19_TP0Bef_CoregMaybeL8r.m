@@ -1,4 +1,4 @@
-function BatchOfFolders= VOIorTumourMaskPrep_Metextraction_fun19_TP0Bef_CoregMaybeL8r(GlassThickness_200PixDepth,DataCroppedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload)
+function BatchOfFolders= VOIorTumourMaskPrep_Metextraction_fun19_TP0Bef_CoregMaybeL8r(GlassThickness_200PixDepth,DataCroppedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload,ProcessFullFOV_0_no_1_yes)
 %Checking need for transverse view 2D tumour mask if applicable
 if contains(MouseName,DirectoriesBareSkinMiceKeyword)%Bareskin mouse
     TumourMaskType='PrismVOI';%Just use some square ROI, but we would still be coregistering to timepoint 0
@@ -148,12 +148,16 @@ if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==0 || Mask2DandMetsOn
             end
         elseif isequal(TumourMaskType,'PrismVOI')
             %% 6) Mask creation for bare skin window chambers (no tumours to segment)
-            TumourMask2D_aligned=zeros([DimsVesselsRaw3D(2),DimsVesselsRaw3D(3)]);%(x,y)
-            %                      PixPermm_x=DimsVesselsRaw3D(2)/width_x;
-            %                      PixPermm_y=DimsVesselsRaw3D(3)/width_y;
-            ExtractedSquareRangex=(round(DimensionsFOVmm(1)/6/PixSize(1))):(round(5*DimensionsFOVmm(1)/6/PixSize(1)));%(round(width_x/6):round(5*width_x/6))*PixPermm_x;
-            ExtractedSquareRangey=(round(DimensionsFOVmm(2)/6/PixSize(2))):(round(5*DimensionsFOVmm(2)/6/PixSize(2)));%(round(width_y/6):round(5*width_y/6))*PixPermm_x;
-            TumourMask2D_aligned(ExtractedSquareRangex,ExtractedSquareRangey)=1;
+            if ProcessFullFOV_0_no_1_yes==0
+                TumourMask2D_aligned=zeros([DimsVesselsRaw3D(2),DimsVesselsRaw3D(3)]);%(x,y)
+                %                      PixPermm_x=DimsVesselsRaw3D(2)/width_x;
+                %                      PixPermm_y=DimsVesselsRaw3D(3)/width_y;
+                ExtractedSquareRangex=(round(DimensionsFOVmm(1)/6/PixSize(1))):(round(5*DimensionsFOVmm(1)/6/PixSize(1)));%(round(width_x/6):round(5*width_x/6))*PixPermm_x;
+                ExtractedSquareRangey=(round(DimensionsFOVmm(2)/6/PixSize(2))):(round(5*DimensionsFOVmm(2)/6/PixSize(2)));%(round(width_y/6):round(5*width_y/6))*PixPermm_x;
+                TumourMask2D_aligned(ExtractedSquareRangex,ExtractedSquareRangey)=1;
+            else
+                TumourMask2D_aligned(:,:)=1;
+            end
             save(fullfile(SegFolder,['TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
         end
     elseif FoundTumourMask2DButCorrectAlignment==2 % Previousligned brightfield (not to TP0- but Just TPx OCT scan, ==1 is for Coreg to TP0- found and selected

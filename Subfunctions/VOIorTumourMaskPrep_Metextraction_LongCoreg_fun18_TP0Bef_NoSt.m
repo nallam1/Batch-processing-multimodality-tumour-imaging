@@ -123,12 +123,16 @@ SegFolder=OptFluSegmentationFolder;
                        
                     elseif isequal(TumourMaskType,'PrismVOI')
                             %% 6) Mask creation for bare skin window chambers (no tumours to segment)
-                        TumourMask2D_aligned=zeros([DimsVesselsRaw3D(2),DimsVesselsRaw3D(3)]);%(x,y)
-    %                      PixPermm_x=DimsVesselsRaw3D(2)/width_x;
-    %                      PixPermm_y=DimsVesselsRaw3D(3)/width_y;
-                         ExtractedSquareRangex=(round(DimensionsFOVmm(1)/6/PixSize(1))):(round(5*DimensionsFOVmm(1)/6/PixSize(1)));%(round(width_x/6):round(5*width_x/6))*PixPermm_x;
-                         ExtractedSquareRangey=(round(DimensionsFOVmm(2)/6/PixSize(2))):(round(5*DimensionsFOVmm(2)/6/PixSize(2)));%(round(width_y/6):round(5*width_y/6))*PixPermm_x;
-                         TumourMask2D_aligned(ExtractedSquareRangex,ExtractedSquareRangey)=1;
+                        if ProcessFullFOV_0_no_1_yes==0
+                            TumourMask2D_aligned=zeros([DimsVesselsRaw3D(2),DimsVesselsRaw3D(3)]);%(x,y)
+                            %                      PixPermm_x=DimsVesselsRaw3D(2)/width_x;
+                            %                      PixPermm_y=DimsVesselsRaw3D(3)/width_y;
+                            ExtractedSquareRangex=(round(DimensionsFOVmm(1)/6/PixSize(1))):(round(5*DimensionsFOVmm(1)/6/PixSize(1)));%(round(width_x/6):round(5*width_x/6))*PixPermm_x;
+                            ExtractedSquareRangey=(round(DimensionsFOVmm(2)/6/PixSize(2))):(round(5*DimensionsFOVmm(2)/6/PixSize(2)));%(round(width_y/6):round(5*width_y/6))*PixPermm_x;
+                            TumourMask2D_aligned(ExtractedSquareRangex,ExtractedSquareRangey)=1;
+                        else
+                            TumourMask2D_aligned(:,:)=1;
+                        end
                         save(fullfile(SegFolder,['TumourMask2D_aligned.mat']),'TumourMask2D_aligned','-v7.3')
                     end    
                 else

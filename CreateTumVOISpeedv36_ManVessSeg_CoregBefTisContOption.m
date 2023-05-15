@@ -1,12 +1,13 @@
 clear
-DirectoryProcCodeLetter='C:\Users\admin\Desktop'; %'D:'
-DirectoryDataLetter='F';%'I:'; %'H:'; %'J:'
-DirectoryVesselsData ='F:\SBRT project March-June 2021'%'I:\Test orthotopic mice' %'F:\DLF data' %'H:\Processing DLF Nov 25 2021\Healthy (Bare Skin)'%%[DirectoryVesselLetter '\DLF data']%'G:\DLF data'%'C:\Users\nader\Desktop\DLF data';%'G:\SBRT project March-June 2021'%'G:\PDXovo';
+DirectoryProcCodeLetter='C:\Users\nader\Documents\MATLAB';%'C:\Users\admin\Desktop'; %'D:'
+DirectoryDataLetter='H:'; %'F';%'I:'; %%'J:'
+DirectoryVesselsData ='H:\Boltless DSWC\';%'F:\SBRT project March-June 2021'%'I:\Test orthotopic mice' %'F:\DLF data' %'H:\Processing DLF Nov 25 2021\Healthy (Bare Skin)'%%[DirectoryVesselLetter '\DLF data']%'G:\DLF data'%'C:\Users\nader\Desktop\DLF data';%'G:\SBRT project March-June 2021'%'G:\PDXovo';
 cd(DirectoryVesselsData);
 addpath(genpath(DirectoryVesselsData));
 %addpath(genpath('Y:\'));
-addpath(genpath([DirectoryProcCodeLetter '\All-in-1_Tissue and vessels segmentation, co-registration and quantification']))%'\Users\Luuk\Desktop\low memory mask creation, coregistration and metric extraction intermediates OCT 31 2021'])) %addpath(genpath([DirectoryProcCodeLetter '\Processing code']))%'C:\Users\Nader\Desktop\Processing code\OCT\Extract VOI'));%'C:\Users\nader\Desktop\'));% Important to save at the end:
-addpath(genpath(fullfile(DirectoryProcCodeLetter ,'Processing code')))
+addpath(genpath(DirectoryProcCodeLetter))
+% addpath(genpath([DirectoryProcCodeLetter '\All-in-1_Tissue and vessels segmentation, co-registration and quantification']))%'\Users\Luuk\Desktop\low memory mask creation, coregistration and metric extraction intermediates OCT 31 2021'])) %addpath(genpath([DirectoryProcCodeLetter '\Processing code']))%'C:\Users\Nader\Desktop\Processing code\OCT\Extract VOI'));%'C:\Users\nader\Desktop\'));% Important to save at the end:
+% addpath(genpath(fullfile(DirectoryProcCodeLetter ,'Processing code')))
 %addpath(genpath([DirectoryStructLetter '\DLF data']));
 tic
 %% User initial input
@@ -23,9 +24,9 @@ tic
     VisualizeResults=1;%whether to check created 3D mask before proceeding to next creation for approval
     %% *****************Tumour Mask creation settings*****************
         % General
-            MatlabVer=2021;
+            MatlabVer=2022;
             LateralorFullCoregPreTisContour=0;% Moves co-registration of volume step prior to tissue contour (but after glass contour)--only if have sufficient memory and helps mostly if OnlyTissueLabelTimepoint0==0 (manally drawn for each timepoint
-            glass_1_Tissue_2_both_3_contour=1;%whether contouring of glass (broken or not) will be performed or the actual tissue surface to help in consistency and accuracy inter-timepoint of manually drawn contours if applying --> Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 or 2 is possible on the computer
+            glass_1_Tissue_2_both_3_contour=3;%whether contouring of glass (broken or not) will be performed or the actual tissue surface to help in consistency and accuracy inter-timepoint of manually drawn contours if applying --> Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 or 2 is possible on the computer
                     MaskCreationFolder={'Manual_With_WO_Glass2';'Manual_OnlyTissue'};
                     num_contoured_slices=[2,15];
             ActiveMemoryOffload=1;%If performing both contouring (glass_1_Tissue_2_both_3_contour==3), whether to clear intermediate loaded variables          
@@ -40,9 +41,10 @@ tic
         % Physical to pix conversions
             umPerPix_For200PixDepthInAir=10.8336;%empirically determined through measurements of borosillicate glass of known dimensions and refractive index at 1320nm, 1.503            
             umPerPix_For200PixDepthInTissue=7.738282833;
-            GlassThickness_200PixDepth=18;%empirically determined average glass thickness is 18 when the volume on our nrcOCT is rescaled to 200pixels in depth
+            GlassThickness_200PixDepth=80*2/5;%18;%empirically determined average glass thickness is 18 when the volume on our nrcOCT is rescaled to 200pixels in depth
             ReferencePixDepth=200;%observation above based on 200 pix depth rescaling, do not change
             DataCroppedNotResizedInDepth=1;%%If not resized no difference in pixel scale from original at 500pixels
+ 
         %Struct image for reference change
             %ToRemoveOS=0;%make it optional during code run?
             OSremoval=0%0.003%0.003;%0.003
@@ -52,8 +54,8 @@ tic
 %         else
 %             SaveFilenameUnrestricted='Full 3D tumour mask_Manual_TissueUnlimited';
 %         end
-            SaveFilenameUnrestricted={'Full 3D tumour mask_Manual_GlassUnlimited';'Full 3D tumour mask_Manual_TissueUnlimited'};
-            SaveFilenameCylindricalProj='Full 3D tumour mask_Manual_CylindricalProj';
+            SaveFilenameUnrestricted={'Full 3D tumour mask_Manual_GlassUnlimited';'Full 3D tumour mask_Manual_TissueUnlimited'}; %based fully on trace of tissue (or window) to depth based on lower limit drawn (if applicable)
+            SaveFilenameCylindricalProj='Full 3D tumour mask_Manual_CylindricalProj'; % cylindrical projection to unlimited depth based on lateral mask
     %% Vessel segmentation settings
         % General
             BinarizeVesselsNOW_0_no_1_manual_2_automatic=1;%(0) Do not perform vessel segmentation now (1) Perform manual vessel segmentation after mask creation step, (2) Perform automatic vessel segmentation after mask creation step  
@@ -61,14 +63,15 @@ tic
                 BinVesselsAlreadyPrepared=0; %If you are still going to be creating the binarized vessels, they would not yet be ready to be transformed during the mask creation steps
                 error('Cannot have BinVesselsAlreadyPrepared==1 if you will be creating the binarized vessels now.')
             end
-            ProcessFullFOV_0_no_1_yes=0;%whether to rely on (1) the full FOV of the raw acquisition or (0) just the defined 3D mask     
+            ProcessFullFOV_0_no_1_yes=1;%whether to rely on (1) the full FOV of the raw acquisition or (0) just the defined 3D mask %            FullVOIIfPossible=1;%1 if do not want to adhere to a VOI cropped based on tumour or a prism to the size of an average tumour    
     CheckIntermediates=1;
-    ColormapDirectory=fullfile(DirectoryProcCodeLetter,'All-in-1_Tissue and vessels segmentation, co-registration and quantification\subfunctions\Colour-depth encoding',"cmap2.mat")
+    ColormapDirectory=fullfile(DirectoryProcCodeLetter,'Subfunctions\Colour-depth encoding',"cmap2.mat")
         % More detailed settings for vessel segmentation are in the body of the script below
         
     %% *****************Files to be selected settings*****************
         % General
             ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3=2;%0: when just for a select few, 2: for selective huge batch processing (not in a rush to get results for a select few), 3: For processing everything
+                KeyWordSvProcessing='FixOSremv'%'Improved'
             UnformatedDataSet=0;%If applying to isolated data not following current organization system (as in old data in the lab from Valentin for example) it will simply perform manual file selection (saving paths) and recording data as date of folder name
             if UnformatedDataSet==1 && ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3~=0
                 ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3=0;
@@ -98,7 +101,8 @@ tic
     %% *****************Info about data*********************************
 %    DirectoryInitialTimepoints={'BSOrt1\Jan 7 2022'}; % Create a folder called Timepoint 0- with FOV and Timepoint
 %    TotalDoses={'NoRTx BSOrt Pilot'}
-DirectoryInitialTimepoints={'BS1\Apr 23 2021';... %must also contain pre if no 'BS'
+DirectoryInitialTimepoints={'BS1022H0M1\Nov 12 2022';...
+                                'BS1\Apr 23 2021';... %must also contain pre if no 'BS'
                                 'BS3\Apr 23 2021';... %will save the OCTA file directly outside the folder for ease in folder called Timepoint 0-
                                 'L0R1\Apr 12 2021';...
                                 'L0R2\Apr 7 2021';...
@@ -112,21 +116,24 @@ DirectoryInitialTimepoints={'BS1\Apr 23 2021';... %must also contain pre if no '
                                 'L2R4 Control small\Apr 26 2021';...
                                 'L2R4 Control Centre large\Apr 26 2021';...
                                 'L2R4 Treated\Apr 26 2021'};
-TotalDoses={'noRTx BS';'noRTx BS';'noRTx Control';'noRTx Control';'3x12Gy MWF';'3x12Gy MWF';'noRTx Control';'3x12Gy MWF';'3x12Gy MWF''noRTx MultiChamber Control';'noRTx MultiChamberControl';'noRTx MultiChamber Control';'noRTx MultiChamberControl';'MultiChamber 3x12Gy MWF'};                           
+TotalDoses={'noRTx BS';'noRTx BS';'noRTx BS';'noRTx Control';'noRTx Control';'3x12Gy MWF';'3x12Gy MWF';'noRTx Control';'3x12Gy MWF';'3x12Gy MWF''noRTx MultiChamber Control';'noRTx MultiChamberControl';'noRTx MultiChamber Control';'noRTx MultiChamberControl';'MultiChamber 3x12Gy MWF'};                           
 
-    exposureTimes_BriFlu=[400,400,400,400,400,800,800,800,800,800,800];
+    exposureTimes_BriFlu=[400,400,400,400,400,400,800,800,800,800,800,800];
     
-    DirectoriesMice={'L1R2';'L1R3';};%{'BSOrt1'}{'BS1';'BS3'};%{'L0R1';'L0R2';'L0R3';'L0R4';'L1R1';'L1R2';'L1R3';'L2R2';'L2R4'};%'\DLF data\20 Gy\M26 - double tumor-(looking at BOTTOM one)';'\DLF data\10 Gy'};%'\DLF data\20 Gy\M44';'\DLF data\20 Gy\M45';'\DLF data\20 Gy\M58';'\DLF data\30 Gy'; '\DLF data\Control'};%
+    DirectoriesMice={'BS1022H0M1'};%{'L1R2';'L1R3';};%{'BSOrt1'}{'BS1';'BS3'};%{'L0R1';'L0R2';'L0R3';'L0R4';'L1R1';'L1R2';'L1R3';'L2R2';'L2R4'};%'\DLF data\20 Gy\M26 - double tumor-(looking at BOTTOM one)';'\DLF data\10 Gy'};%'\DLF data\20 Gy\M44';'\DLF data\20 Gy\M45';'\DLF data\20 Gy\M58';'\DLF data\30 Gy'; '\DLF data\Control'};%
     DirectoriesBareSkinMiceKeyword={'BS'};
     DirectoriesStruct=DirectoriesMice;
     for indMice=1:length(DirectoriesMice)
         DirectoriesMice{indMice}=[fullfile(DirectoryVesselsData,DirectoriesMice{indMice})];
+        for countOfMiceToBeProcessed=1:indMice
+            ExtractDateTimeForAllData(DirectoriesMice{indMice})
+        end
     end
     for indMice=1:length(DirectoryInitialTimepoints)
         DirectoryInitialTimepoints{indMice}=[fullfile(DirectoryVesselsData,DirectoryInitialTimepoints{indMice})];
     end
     for indMice=1:length(DirectoriesStruct)
-        DirectoriesStruct{indMice}=[fullfile(DirectoryDataLetter,DirectoriesStruct{indMice})];
+        DirectoriesStruct{indMice}=[fullfile(DirectoryVesselsData,DirectoriesStruct{indMice})];
     end
 %% Defining directories for automatic and semi-automatic file search
 if ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3==2
@@ -593,15 +600,15 @@ else
                                         toc
                                         if LateralorFullCoregPreTisContour==0
                                             if UnformatedDataSet==1
-                                                BatchOfFolders = VOIorTumourMaskPrep_Metextraction_LongCoreg_fun17_NoStOCT(GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,TimepointTrueAndRel,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,OnlyTissueLabelTimepoint0,ActiveMemoryOffload);                                    
+                                                BatchOfFolders = VOIorTumourMaskPrep_Metextraction_LongCoreg_fun17_NoStOCT(GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,TimepointTrueAndRel,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,OnlyTissueLabelTimepoint0,ActiveMemoryOffload,ProcessFullFOV_0_no_1_yes);                                    
                                             else
-                                                BatchOfFolders = VOIorTumourMaskPrep_Metextraction_fun19_TP0Bef_CoregMaybeL8r(GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload);                                    
+                                                BatchOfFolders = VOIorTumourMaskPrep_Metextraction_fun19_TP0Bef_CoregMaybeL8r(GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload,ProcessFullFOV_0_no_1_yes);                                    
                                             end
                                         else
                                             if UnformatedDataSet==1
                                             
                                             else
-                                                BatchOfFolders = VOIorTumourMaskPrep_Metext_LongCoreg_fun16_CoregBefContTis(GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload);                                    
+                                                BatchOfFolders = VOIorTumourMaskPrep_Metext_LongCoreg_fun16_CoregBefContTis(GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload,ProcessFullFOV_0_no_1_yes);                                    
                                             end
                                         end
                                         toc
@@ -636,28 +643,34 @@ else
                                                 if OnlyTissueLabelTimepoint0==0 %if drawing it manually for each timepoint--worth saving tissue mask                                         
                                                     if (-1<DaysPrecise && DaysPrecise<=0)
                                                         %Raw OCTA used
-                                                            BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_isT0_TissueMaskApp.mat')  
+                                                            BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_isT0_TissueMaskApp.mat');  %drawn tissue mask in current attempt (as it is T0)
                                                             BatchOfFolders{countBatchFolder,8}=fullfile(saveFolder{2},'Bin Manual','BinVess_CoregTime0-_isT0_TissueMaskApp.mat');
+                                                        %Toward 3D mask
+                                                            BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited{2};
                                                     else
                                                         %Raw OCTA used
-                                                            BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_CurrentTP_TissueMaskApp.mat')
-                                                            BatchOfFolders{countBatchFolder,8}=fullfile(saveFolder{2},'Bin Manual','BinVess_CoregTime0-_CurrentTP_TissueMaskApp.mat')
-                                                    end
+                                                            BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_CurrentTP_TissueMaskApp.mat'); %drawn tissue mask in current attempt 
+                                                            BatchOfFolders{countBatchFolder,8}=fullfile(saveFolder{2},'Bin Manual','BinVess_CoregTime0-_CurrentTP_TissueMaskApp.mat');
                                                         %Toward 3D mask
-                                                            BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited_UnCoregT0{2}; 
-                                                            pathBinarization=fullfile(saveFolder{2},'Bin Manual');
+                                                            BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited_UnCoregT0{2};
+                                                    end 
+%                                                             pathBinarization=fullfile(saveFolder{2},'Bin Manual');
                                                 elseif OnlyTissueLabelTimepoint0==1
                                                     if (-1<DaysPrecise && DaysPrecise<=0)
                                                         %Raw OCTA used
-                                                            BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_isT0_TissueMaskApp.mat')
+                                                            BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_isT0_TissueMaskApp.mat'); %drawn tissue mask in current attempt (as it is T0)
+                                                         %Toward 3D mask
+                                                            BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited{2};% only case when cortegistration necessary (otherwise mask cannot be applied)
                                                             BatchOfFolders{countBatchFolder,8}=fullfile(saveFolder{2},'Bin Manual','BinVess_CoregTime0-_isT0_TissueMaskApp.mat');
                                                     else
                                                         %Raw OCTA used
-                                                            BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_FromT0_TissueMaskApp.mat')
+                                                            BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_FromT0_TissueMaskApp.mat'); %drawn tissue mask from T0
+                                                         %Toward 3D mask
+                                                            BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited_UnCoregT0{2};% only case when cortegistration necessary (otherwise mask cannot be applied)
                                                             BatchOfFolders{countBatchFolder,8}=fullfile(saveFolder{2},'Bin Manual','BinVess_CoregTime0-_FromT0_TissueMaskApp.mat');
                                                     end
-                                                    %Toward 3D mask
-                                                        BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited{2};% only case when cortegistration necessary (otherwise mask cannot be applied)
+%                                                     %Toward 3D mask
+%                                                         BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited{2};% only case when cortegistration necessary (otherwise mask cannot be applied)
                                                 end
                                                 pathBinarization=fullfile(saveFolder{2},'Bin Manual');
                                             end
@@ -1114,7 +1127,7 @@ end
         BatchOfFolders{countBatchFolder,1}={};  
     end
 %% Searching through folders automatically and semi-automatically for files
-%% %%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3==2 || ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3==3
     countBatchFolder=0;
     BatchOfFolders=cell([],5);
@@ -1122,7 +1135,9 @@ elseif ManualSelFew_0_OR_SemiAutomatic_2_OR_FullAutomatic_3==2 || ManualSelFew_0
         for ind=1:length(allMice)
             FoundRawOCTA=0;
             for trialOCTARaw=1:length(RawVasculatureFileKeywordRaw)
-                if contains(allMice(ind).name,RawVasculatureFileKeywordRaw{trialOCTARaw}) && ~contains(allMice(ind).folder,'Old') && ~contains(allMice(ind).folder,'old') && ~contains(allMice(ind).folder,'Quick') && ~contains(allMice(ind).folder,'quick') && contains(allMice(ind).folder,'Improved') && ~contains(allMice(ind).folder,'TumourDepth') && ~contains(allMice(ind).folder,'Backside')%'Raw_OCT_Volume') % ~isempty(strfind(all(ind).name,'Raw_OCT_Volume'))
+%                 allMice(ind).name
+%                 allMice(ind).folder
+                if contains(allMice(ind).name,RawVasculatureFileKeywordRaw{trialOCTARaw}) && ~contains(allMice(ind).folder,'Old') && ~contains(allMice(ind).folder,'old') && ~contains(allMice(ind).folder,'Quick') && ~contains(allMice(ind).folder,'quick') && contains(allMice(ind).folder,KeyWordSvProcessing) && ~contains(allMice(ind).folder,'TumourDepth') && ~contains(allMice(ind).folder,'Backside')%'Raw_OCT_Volume') % ~isempty(strfind(all(ind).name,'Raw_OCT_Volume'))
                     pathOCTVesRaw=allMice(ind).folder;
                     filenameOCTVesRaw=allMice(ind).name;
                         FolderStructAndRawOCTA=fileparts(pathOCTVesRaw);
@@ -1427,7 +1442,7 @@ else
                                  else
                                            for SubFolderSearchInd=1:length(AllInFolderConsidered) %searching through current folder for the appropriate flu or opt file
                                                         for trialstOCT=1:length(stOCTFileKeyword)
-                                                            if contains(AllInFolderConsidered(SubFolderSearchInd).name,stOCTFileKeyword{trialstOCT}) && contains(AllInFolderConsidered(SubFolderSearchInd).folder,'Improved')
+                                                            if contains(AllInFolderConsidered(SubFolderSearchInd).name,stOCTFileKeyword{trialstOCT}) && contains(AllInFolderConsidered(SubFolderSearchInd).folder,KeyWordSvProcessing)
                                                                 FoundstOCT=1;
                                                                 BatchOfFolders{countBatchFolder,3}=fullfile(AllInFolderConsidered(SubFolderSearchInd).folder,AllInFolderConsidered(SubFolderSearchInd).name);
                                                                 pathStOCT=AllInFolderConsidered(SubFolderSearchInd).folder;
@@ -1481,44 +1496,50 @@ else
                                 OptFluSegmentationFolderDir=dir(OptFluSegmentationFolder);
                                 OptFluSegmentationFolderFiles={OptFluSegmentationFolderDir(:).name};
                                 FoundMask2D=0;
-                                    for SubFolderSearchInd=1:length(OptFluSegmentationFolderFiles) %searching through current folder for the appropriate flu or opt file
-                                                        for trialMask2D=1:length(predrawnTumourMaskFileKeyword)
-                                                            if contains(OptFluSegmentationFolderFiles{SubFolderSearchInd},predrawnTumourMaskFileKeyword{trialMask2D})
-                                                                FoundMask2D=1;
-                                                                BatchOfFolders{countBatchFolder,4}=fullfile(OptFluSegmentationFolder,OptFluSegmentationFolderFiles{SubFolderSearchInd});
-                                                                path2DMask=OptFluSegmentationFolder;
-                                                                filename2DMask=OptFluSegmentationFolderFiles{SubFolderSearchInd};
-                                                                break
-                                                            end
-                                                        end
-                                                        if FoundMask2D==1 %the tumour masks are in descending order of intermediate creation advancement
-                                                            break;
-                                                        end
-                                    end
-                                if FoundMask2D==0
-                                    [filename2DMask,path2DMask]=uigetfile(OptFluSegmentationFolder,'Please select previously created tumour mask file (if none just cancel).')
-                                    if isequal(filename2DMask,0) || isequal(path2DMask,0)%not found this previously drawn mask
-                                        createTumourMaskQuestion=input('Shall we create one and extract all the metrics (fast,<8min)? y/n \n','s')
-                                            if ~isequal(createTumourMaskQuestion,'y')|| isempty(createTumourMaskQuestion)
-                                                fprintf('Skipping\n')
-                                                continue%error('Please select a pre-drawn 2D tumour mask for me... please!')
+                                if contains(MouseName,'BS')
+                                            FoundMask2D=1;%Simply Square for prism VOI
+                                else %tumour
+                                            for SubFolderSearchInd=1:length(OptFluSegmentationFolderFiles) %searching through current folder for the appropriate flu or opt file
+                                                
+                                                                for trialMask2D=1:length(predrawnTumourMaskFileKeyword)
+                                                                    if contains(OptFluSegmentationFolderFiles{SubFolderSearchInd},predrawnTumourMaskFileKeyword{trialMask2D})
+                                                                        FoundMask2D=1;
+                                                                        BatchOfFolders{countBatchFolder,4}=fullfile(OptFluSegmentationFolder,OptFluSegmentationFolderFiles{SubFolderSearchInd});
+                                                                        path2DMask=OptFluSegmentationFolder;
+                                                                        filename2DMask=OptFluSegmentationFolderFiles{SubFolderSearchInd};
+                                                                        break
+                                                                    end
+                                                                end
+                                                                if FoundMask2D==1 %the tumour masks are in descending order of intermediate creation advancement
+                                                                    break;
+                                                                end
                                             end
-                                    else
-                                        FoundMask2D=1;
-                                        createTumourMaskQuestion='n';
-                                        BatchOfFolders{countBatchFolder,4}=fullfile(path2DMask,filename2DMask);
+                                    if FoundMask2D==0
+                                        [filename2DMask,path2DMask]=uigetfile(OptFluSegmentationFolder,'Please select previously created tumour mask file (if none just cancel).')
+                                        if isequal(filename2DMask,0) || isequal(path2DMask,0)%not found this previously drawn mask
+                                            createTumourMaskQuestion=input('Shall we create one and extract all the metrics (fast,<8min)? y/n \n','s')
+                                                if ~isequal(createTumourMaskQuestion,'y')|| isempty(createTumourMaskQuestion)
+                                                    fprintf('Skipping\n')
+                                                    continue%error('Please select a pre-drawn 2D tumour mask for me... please!')
+                                                end
+                                        else
+                                            FoundMask2D=1;
+                                            createTumourMaskQuestion='n';
+                                            BatchOfFolders{countBatchFolder,4}=fullfile(path2DMask,filename2DMask);
+                                        end
                                     end
+                                        
+                                                if isequal(filename2DMask,'TumourMask2D_aligned_coregTime0.mat')
+                                                        FoundTumourMask2DButCorrectAlignment=1; %if it is named this way, it was created with the script for aligning
+                                                        createTumourMaskQuestion='n';
+                                                elseif isequal(filename2DMask,0) 
+                                                    createTumourMaskQuestion='y';
+                                                        FoundTumourMask2DButCorrectAlignment=0;
+                                                else
+                                                    createTumourMaskQuestion='y';
+                                                        FoundTumourMask2DButCorrectAlignment=2;%some other mask intermediate    
+                                                end
                                 end
-                                            if isequal(filename2DMask,'TumourMask2D_aligned_coregTime0.mat')
-                                                    FoundTumourMask2DButCorrectAlignment=1; %if it is named this way, it was created with the script for aligning
-                                                    createTumourMaskQuestion='n';
-                                            elseif isequal(filename2DMask,0) 
-                                                createTumourMaskQuestion='y';
-                                                    FoundTumourMask2DButCorrectAlignment=0;
-                                            else
-                                                createTumourMaskQuestion='y';
-                                                    FoundTumourMask2DButCorrectAlignment=2;%some other mask intermediate    
-                                            end
                         end
                                 
                                 %if PredrawnTumourMask~=1 || isequal(createTumourMaskQuestion,'y')|| FoundTumourMask2DButCorrectAlignment==0 || FoundMask2D==0
@@ -1570,9 +1591,9 @@ else
                                     if AlreadyCompletedJustContouring==0 || AlreadyCompletedMaskCreation==0
                                         toc
                                         if LateralorFullCoregPreTisContour==0
-                                            BatchOfFolders = VOIorTumourMaskPrep_Metextraction_fun19_TP0Bef_CoregMaybeL8r(GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload);                                                                        
+                                            BatchOfFolders = VOIorTumourMaskPrep_Metextraction_fun19_TP0Bef_CoregMaybeL8r(GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload,ProcessFullFOV_0_no_1_yes);                                                                        
                                         else
-                                            BatchOfFolders = VOIorTumourMaskPrep_Metext_LongCoreg_fun16_CoregBefContTis(GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload);                                    
+                                            BatchOfFolders = VOIorTumourMaskPrep_Metext_LongCoreg_fun16_CoregBefContTis(GlassThickness_200PixDepth,DataCroppedNotResizedInDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,DirectoryDataLetter,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload,ProcessFullFOV_0_no_1_yes);                                    
                                                 %VOIorTumourMaskPrep_Metext_LongCoreg_fun16_CoregBefContTis(GlassThickness_200PixDepth,ReferencePixDepth,BatchOfFolders,countBatchFolder,MouseName,NameDayFormat,NameTimepointComboTemp,DirectoryInitialTimepoints,DirectoryVesselsData,TimepointTrueAndRel,TimepointVarName,FolderConsidered,DirectoriesBareSkinMiceKeyword,OptFluSegmentationFolder,MaskCreationDraft,saveFolder,pathOCTVesRaw,filenameOCTVesRaw,pathOCTVesBin,filenameOCTVesBin,pathStOCT,filenameStOCT,RawVasculatureFileKeywordRaw,TryAutomaticAllignment,exposureTimes_BriFlu,IndexMouse,num_contoured_slices,OSremoval,TumourMaskAndStepsDir,OCTLateralTimepointCoregistrationFolder,FoundTumourMask2DButCorrectAlignment,SaveFilenameDataUnlimited,SaveFilenameDataCylindricalProj,SaveFilenameDataUnlimited_UnCoregT0,SaveFilenameDataCylindricalProj_UnCoregT0,BinVesselsAlreadyPrepared,Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2,VisualizeResults,glass_1_Tissue_2_both_3_contour,DoseReceivedUpToTP,DaysPrecise,SegmentationFolderTimepoint0,indxNotEmpty,MouseNameTimepoint0,OnlyTissueLabelTimepoint0,InitialTimepointtxtFile,ActiveMemoryOffload);                                    
                                         end
                                          toc
@@ -1607,28 +1628,37 @@ else
                                                 if OnlyTissueLabelTimepoint0==0 %if drawing it manually for each timepoint--worth saving tissue mask                                         
                                                     if (-1<DaysPrecise && DaysPrecise<=0)
                                                         %Raw OCTA used
-                                                            BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_isT0_TissueMaskApp.mat')  
+                                                            BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_isT0_TissueMaskApp.mat');
+                                                        %Toward 3D mask
+                                                            BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited{2};% only case when cortegistration necessary (otherwise mask cannot be applied)
                                                             BatchOfFolders{countBatchFolder,8}=fullfile(saveFolder{2},'Bin Manual','BinVess_CoregTime0-_isT0_TissueMaskApp.mat');
+    
                                                     else
                                                         %Raw OCTA used
                                                             BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_CurrentTP_TissueMaskApp.mat')
+                                                        %Toward 3D mask
+                                                            BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited_UnCoregT0{2};% only case when cortegistration necessary (otherwise mask cannot be applied)
                                                             BatchOfFolders{countBatchFolder,8}=fullfile(saveFolder{2},'Bin Manual','BinVess_CoregTime0-_CurrentTP_TissueMaskApp.mat')
                                                     end
-                                                        %Toward 3D mask
-                                                            BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited_UnCoregT0{2}; 
-                                                            pathBinarization=fullfile(saveFolder{2},'Bin Manual');
+%                                                         %Toward 3D mask
+%                                                             BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited_UnCoregT0{2}; 
+%                                                             pathBinarization=fullfile(saveFolder{2},'Bin Manual');
                                                 elseif OnlyTissueLabelTimepoint0==1
                                                     if (-1<DaysPrecise && DaysPrecise<=0)
                                                         %Raw OCTA used
                                                             BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_isT0_TissueMaskApp.mat')
+                                                        %Toward 3D mask
+                                                            BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited{2};% only case when cortegistration necessary (otherwise mask cannot be applied)
                                                             BatchOfFolders{countBatchFolder,8}=fullfile(saveFolder{2},'Bin Manual','BinVess_CoregTime0-_isT0_TissueMaskApp.mat');
                                                     else
                                                         %Raw OCTA used
                                                             BatchOfFolders{countBatchFolder,6}=fullfile(saveFolder{2},'RawVess_CoregTime0-_FromT0_TissueMaskApp.mat')
+                                                        %Toward 3D mask
+                                                            BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited_UnCoregT0{2};% only case when cortegistration necessary (otherwise mask cannot be applied)
                                                             BatchOfFolders{countBatchFolder,8}=fullfile(saveFolder{2},'Bin Manual','BinVess_CoregTime0-_FromT0_TissueMaskApp.mat');
                                                     end
-                                                    %Toward 3D mask
-                                                        BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited{2};% only case when cortegistration necessary (otherwise mask cannot be applied)
+%                                                     %Toward 3D mask
+%                                                         BatchOfFolders{countBatchFolder,7}=SaveFilenameDataUnlimited{2};% only case when cortegistration necessary (otherwise mask cannot be applied)
                                                 end
                                                 pathBinarization=fullfile(saveFolder{2},'Bin Manual');
                                             end

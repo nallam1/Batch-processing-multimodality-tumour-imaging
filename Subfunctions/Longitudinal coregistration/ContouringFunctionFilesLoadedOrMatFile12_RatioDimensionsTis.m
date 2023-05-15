@@ -16,7 +16,7 @@ function mask_3D_TissueOnly=ContouringFunctionFilesLoadedOrMatFile12_RatioDimens
 % on right. When satisfied just press "enter" otherwise type "n" then "enter".
 % Contour out top of glass surface (since this is the first clearest
 % interface.
-
+% AutoProcess=0; %For troubleshooting manually uncomment this line
 %% Contour out the tissue interface in stOCT volume (but only timepoint 0 due to uncertainty with exudate over time) and assuming the same contour over time
 if isempty(BatchOfFolders{countBatchFolder,2})%no binarized vessels
     OCTAVarname=whos('-file',BatchOfFolders{countBatchFolder,1});
@@ -496,7 +496,7 @@ end
 
 if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==2
     %% Creating no glass mask interpolating across contours drawn in previous steps
-    %% From Top surface of glass
+    %% From Top surface of tissue
     mask_3D_TissueAndAllBelow=ones([Dims]);
     %Interpolating just over the drawn top surface
     TissueMaskTopSurface=zeros(size(mask_3D_TissueAndAllBelow,2),size(mask_3D_TissueAndAllBelow,3));
@@ -513,6 +513,7 @@ if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOn
                         rangey=(slices(n):slices(n+1));%floor(user_roi.Position(indx,1)):ceil(user_roi.Position(indx+1,1));
                     end
                         for x=1:size(mask_3D_TissueAndAllBelow,2)%taking step by step along x drawing top of yz slice
+                            disp(x)
                             TissueMaskTopSurface(x,rangey)=slopeyz_perXSlice{n}(x)*[rangey]+Interceptyz_perXSlice{n}(x);%=slopeyz_perXSlice(x)*[1:size(mask_3D_GlassInc,3)]+Interceptyz_perXSlice(x);
                         end
                         %Since no longer going from first to last frame (sampling at 1 and 1/2frames (maybe later 1/3 and 2/3) as they might be the cleanest %GlassMaskTopSurface(x,(slices(n):slices(n+1)))=linspace(zline_GlassTrace_TopSurf{n}(x),zline_GlassTrace_TopSurf{n+1}(x),(slices(n+1)-slices(n)+1));
@@ -531,7 +532,7 @@ if Mask2DandMetsOnly_0_OR_Mask3DOnlyAfter_1_OR_AllAtOnce_2==1 || Mask2DandMetsOn
         mask_3D_TissueAndAllBelow=imresize3(cast(mask_3D_TissueAndAllBelow,'uint16'),DimsVesselsRaw3D);
         save(SaveFilenameData3DMaskTissueAndAllBelow,'mask_3D_TissueAndAllBelow','-v7.3');
         
-    %% From bottom surface Of Glass
+    %% From bottom surface Of tissue
 if exist('zline_TissueTrace_BotSurf','var') && ~isempty([zline_TissueTrace_BotSurf{:}])
     mask_3D_TissueOnly=ones([Dims]);
     %Interpolating just over the drawn top surface glass shifted down

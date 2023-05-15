@@ -118,6 +118,9 @@ n=n+1;
                        else
                            user_roi = drawpolyline;
                        end
+                       if isempty(user_roi)
+                           error('no line drawn')
+                       end
                        %saving it regardlesss for the first attempt at
                        %first slice to later fine tune
                        mask_1D = createMask(user_roi);%just the hand drawn line on 2D black overlay of image

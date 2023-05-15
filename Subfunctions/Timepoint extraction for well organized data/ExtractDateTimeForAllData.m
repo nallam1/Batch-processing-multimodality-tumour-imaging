@@ -1,4 +1,4 @@
-function ExtractDateTimeForAllData(DirectoryVesselsData) 
+function ExtractDateTimeForAllData(DirectoryVesselsData)%,InitialTimepointList) 
 %% creates text file with info: Mouse name, as well as day and time of scan into what will become the 3D VOI/tumour segmentation folder
 %% Folder organization:
 % All individual mouse-tumour folders and folder containing extracted
@@ -38,7 +38,16 @@ addpath(genpath(DirectoryVesselsData))
                 fclose(fid);
             else
                 fprintf('Timepoint already recorded\n')
-            end             
+            end
+% %% Identify if this is the initial timepoint folder (as defined by user) and save text file indicating this
+%             if contains(~exist(fullfile(TumourMaskAndStepsDir,InitialTimepointList...),'file')
+%                 fid = fopen(fullfile(TumourMaskAndStepsDir,'Timepoint.txt'), 'wt');
+%                 fprintf(fid, d(i).date);%sprintf('',strrep(d(i).date,':','_'))%'Jake said: %f\n', sqrt(1:10));
+%                 fclose(fid);
+%             else
+%                 fprintf('Timepoint already recorded\n')
+%             end
+            
         else
             fprintf('Skippable folder\n')
         end 

@@ -47,18 +47,33 @@ DateName=[ImgTimepoint_temp2{2},' ',ImgTimepoint_temp2{1},' ',ImgTimepoint_temp2
             if exist(fullfile(GenDirectory,MouseName,'Timepoint 0-','Timepoint0-.txt'))
                 InitialTimepointFile=fullfile(GenDirectory,MouseName,'Timepoint 0-','Timepoint0-.txt');
             end
-        if isempty(InitialTimepointFile)
-            if exist(fullfile(GenDirectory,MouseName,'Timepoint 0-','Timepoint 0-Info_path.mat'))
-                load(fullfile(GenDirectory,MouseName,'Timepoint 0-','Timepoint 0-Info_path.mat'))
-            else
-                [filenameTP_Time0,pathTP_Time0]=uigetfile(fullfile(GenDirectory,MouseName),'Please select Timepoint 0- Info file');
-                InitialTimepointFile=fullfile(pathTP_Time0,filenameTP_Time0);
-                save(fullfile(GenDirectory,MouseName,'Timepoint 0-','Timepoint 0-Info_path.mat'),'InitialTimepointFile','-v7.3')
-            end
-        end
-    else
-        error('No reference timepoint found')
     end
+    %% After looking for timepoint 0- text file, if info still not found
+            if isempty(InitialTimepointFile) || countMT==0
+                if exist(fullfile(GenDirectory,MouseName,'Timepoint 0-','Timepoint 0-Info_path.mat'))
+                    load(fullfile(GenDirectory,MouseName,'Timepoint 0-','Timepoint 0-Info_path.mat'))
+                else
+                    [filenameTP_Time0,pathTP_Time0]=uigetfile('*.txt','Please select Timepoint 0- Info file',fullfile(GenDirectory,MouseName));
+                    InitialTimepointFile=fullfile(pathTP_Time0,filenameTP_Time0);
+                    if ~exist(fullfile(GenDirectory,MouseName,'Timepoint 0-'),'dir')
+                        mkdir(fullfile(GenDirectory,MouseName,'Timepoint 0-'))
+                    end
+                        save(fullfile(GenDirectory,MouseName,'Timepoint 0-','Timepoint 0-Info_path.mat'),'InitialTimepointFile','-v7.3')
+
+                    time0Fid=fopen(InitialTimepointFile,'r');
+                    time0Info=fscanf(time0Fid,'%s', [1, inf]);
+                    fclose(time0Fid);
+                    %creating text file called Timepoint0- with data info
+                    %from other file selected
+                    fid = fopen(fullfile(pathTP_Time0,'Timepoint0-.txt'), 'wt');
+                    fprintf(fid, time0Info);%sprintf('',strrep(d(i).date,':','_'))%'Jake said: %f\n', sqrt(1:10));
+                    fclose(fid);
+                end
+            else
+                error('No reference timepoint found')
+            end
+
+    %% Assuming timpoint 0- info found
 RefTimeFid=fopen(InitialTimepointFile,'r');
 RefTimepoint_temp=fscanf(RefTimeFid,'%s', [1, inf]);
 RefTimepoint=datetime(sprintf('%s %s',RefTimepoint_temp(1:11),RefTimepoint_temp(12:end)))    
