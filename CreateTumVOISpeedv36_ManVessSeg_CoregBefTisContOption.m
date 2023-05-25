@@ -1700,12 +1700,18 @@ else
                                         % filter)--Usually no need to change  --also implemented in Step 4
                                         % (2nd median filter) --smoothens
                                             num_rounds = 1; %CHANGE THIS--> barely makes a difference
-                                            opening_closing_parameter = 15;%15 %CHANGE THIS
-                                            median_filtering_parameter = 4;%2 %CHANGE THIS
+                                            opening_closing_parameter = 60;%15%30 %CHANGE THIS
+                                            median_filtering_parameter = 2%4;%2 %CHANGE THIS
                                         % Step 2: Hard thresholding --Not so sure about keeping this (can be
-                                        % made linear as a function of depth)
-                                            thresh_superficial = 3500; %CHANGE THIS
-                                            thresh_deep = 1000; %Minimum threshold level %CHANGE THIS
+%                                         % made linear as a function of depth)
+%                                             thresh_superficial = 7000;%3500; %CHANGE THIS
+%                                             thresh_deep = 1000; %Minimum threshold level %CHANGE THIS
+                                          % Remove oversaturation then
+                                          % normalize relative to maximum
+                                          % and Threshold based on % below mean (maybe based on interquartile range and median)
+                                          thresh_superficialPercBelow=0.25;%Percentage of pixels along intensity distribution allowed
+                                          thresh_deepPercOfSuperficial=0.5;
+                                          SampledDepthum=100;
                                         % Step 3: Deshadowing
                                             deshadowing_para = 20; %15-17% CHANGE THIS % Decrease this number to increase the strength of deshadowing 
                                         % Step 4: 2nd median filter
@@ -1771,6 +1777,11 @@ else
                                                 % thresh_deep = 1000; %Minimum threshold level %CHANGE THIS
 
                                                 VTD_thresh = zeros(size(VTD_median,1),size(VTD_median,2),size(VTD_median,3));
+                                                SampledDepth_pix=SampledDepthum/(umPerPix_For200PixDepthInTissue*2/5);%convert to um per pix for 500 pix in depth data then find number pixels in depth sampled here
+                                                %interquartileRangeSuperficial=iqr(VTD_median(1:SampledDepth_pix,:,:),'all');
+                                                %medianSuperficial=median(VTD_median(1:SampledDepth_pix,:,:),'all');
+                                                thresh_superficial=prctile(VTD_median(1:SampledDepth_pix,:,:),100*thresh_superficialPercBelow,'all');%medianSuperficial-interquartileRangeSuperficial/2 thresh_superficialPercBelSuperficialMed
+                                                thresh_deep=thresh_deepPercOfSuperficial*thresh_superficial;
 
                                                 r=flip(1*linspace(thresh_deep,thresh_superficial,size(VTD_median,1)));% Threshold as a function of depth
 
@@ -1784,7 +1795,7 @@ else
                                                 figure, imshow3D(cat(2,VTD_median,VTD_thresh))
                                                 figure, imshow3D(cat(2,shiftdim(VTD_median,1),shiftdim(VTD_thresh,1)))
                                                 if CheckIntermediates==1
-                                                    pause = 1;
+                                                        pause = 1;
                                                 end
                                                 %No resizing from raw (z,x,y) 500,1152,1200
 
@@ -1839,7 +1850,7 @@ else
                                                     VTD_median_2(:,w,:)=STT_temp(:,:);
                                                     clc; display(['Median filtering, frame  ' num2str(w)]);
                                                 end
-                                                figure, imshow3D(cat(2,VTD_deshadowed,VTD_median_2))
+                                                figure, imshow3D(cat(2,VTD_deshadowed,VTD_median_2))%barely changes at this point
                                                 figure, imshow3D(cat(2,shiftdim(VTD_deshadowed,1),shiftdim(VTD_median_2,1)))
                                                 if CheckIntermediates==1
                                                     pause = 1;
